@@ -82,5 +82,6 @@ describe("desktop core contract", () => {
     expect(webview).toContain('isSampleProject = true');
     expect(webview).toContain('if (!isNative || isSampleProject)');
     expect(config.responseOverrides["404"]).toEqual({ rewrite: "/404.html", statusCode: 404 });
+    expect(config.routes.slice(0, 3).map((route) => route.route)).toEqual(["/demo", "/privacy", "/terms"]);
   });
 });
