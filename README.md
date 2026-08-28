@@ -2,7 +2,7 @@
 
 See blocked coding agents and unsafe Git worktrees in one local desktop board.
 
-Pulse is for solo developers and tiny teams running several CLI agents in Git worktrees. It discovers linked worktrees, reads Git status, shows opt-in agent state, and opens the selected worktree in a terminal. It does not send prompts, run Git writes, or record terminal output.
+Pulse is for solo developers and tiny teams running several CLI agents in Git worktrees. It discovers linked worktrees, reads Git status, shows opt-in agent state, and opens the selected worktree in a terminal. It ignores source, prompt, output, and terminal content. Scans do not run Git writes.
 
 Live site: <https://worktree-agent-pulse.sociobot.in>
 
@@ -49,12 +49,11 @@ An adapter is opt-in. Create `.worktree-agent-pulse/status.json` inside a worktr
 {
   "agent": "Codex",
   "state": "working",
-  "updatedAt": "2026-08-28T14:31:00Z",
-  "note": "Running tests"
+  "updatedAt": "2026-08-28T14:31:00Z"
 }
 ```
 
-`state` accepts `working`, `blocked`, or `idle`. Keep `note` short and free of prompt or output content. Pulse never asks for that content.
+`state` accepts `working`, `blocked`, or `idle`. Other fields, including prompt and output text, are ignored.
 
 ## Test and build
 
@@ -82,7 +81,7 @@ On macOS, right-click the unsigned app and choose **Open**. On Windows, confirm 
 
 ## Privacy and billing
 
-Repository data stays in the app. The public site contacts GitHub only to resolve release downloads. License checkout and daily verification use `api.sociobot.in`; the license token stays in local storage. Sociobot and Dodo are the merchant of record.
+Repository paths and board state stay in local app storage. The public site contacts GitHub only after you request a download. License checkout and daily verification use `api.sociobot.in`; the license token stays in local storage. Sociobot and Dodo handle checkout and refunds.
 
 See `/privacy` and `/terms` on the site. The sample board works offline after its first visit.
 

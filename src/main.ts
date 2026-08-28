@@ -7,6 +7,7 @@ import type { Filter, RepositoryPulse, WorktreePulse } from "./types";
 import { clearDemo, getDemoRepository, loadRepositoryPaths, resetDemo, saveRepositoryPath } from "./storage";
 import { captureReturnedLicense, checkoutUrl, hasCachedLicense, storeLicense, verifyLicense } from "./license";
 import { detectPlatform, getDownload, releasesUrl, type Platform } from "./downloads";
+import { FREE_WORKTREE_LIMIT, scheduleProRefresh, worktreesForLicense } from "./pro";
 
 declare global { interface Window { __TAURI_INTERNALS__?: unknown } }
 
@@ -62,8 +63,8 @@ function header(): string {
 function footer(): string {
   return `<footer class="site-footer">
     <p>See blocked agents and unsafe worktrees in one local board.</p>
-    <nav aria-label="Footer"><a href="/privacy" data-route>Privacy</a><a href="/terms" data-route>Terms</a><a href="https://param.sociobot.in" target="_blank" rel="noreferrer">Built by Param Factory <span class="sr-only">(opens in a new tab)</span></a></nav>
-    <p class="build-id">v0.1.3 · Generated artwork disclosed</p>
+    <nav aria-label="Footer"><a href="/privacy" data-route>Privacy</a><a href="/terms" data-route>Terms</a><span>Built by Param Factory</span></nav>
+    <p class="build-id">v0.1.4 · Generated artwork disclosed</p>
   </footer>`;
 }
 
@@ -128,7 +129,7 @@ function landing(): string {
           <span>Loads five worktrees. Nothing is saved.</span>
         </div>
         <ul class="plain-facts" aria-label="Product facts">
-          <li><span aria-hidden="true">01</span>No prompt or output capture</li>
+          <li><span aria-hidden="true">01</span>Prompt and output fields are ignored</li>
           <li><span aria-hidden="true">02</span>Works without an account</li>
           <li><span aria-hidden="true">03</span>Five worktrees free · Pro is $19 once</li>
         </ul>
@@ -141,7 +142,7 @@ function landing(): string {
 
     <section class="product-preview" aria-labelledby="preview-title">
       <div class="section-index"><span>02</span><p>THE BOARD</p></div>
-      <div class="section-content"><h2 id="preview-title">Scan worktrees by urgency</h2><p>Blocked prompts and dirty branches rise above routine activity.</p>${miniDashboard()}</div>
+      <div class="section-content"><h2 id="preview-title">Scan worktrees by urgency</h2><p>Blocked agents and dirty branches rise above routine activity.</p>${miniDashboard()}</div>
     </section>
 
     <section id="how" class="how-section" aria-labelledby="how-title">
@@ -149,7 +150,7 @@ function landing(): string {
       <div class="section-content"><h2 id="how-title">Keep your terminal. Add one view.</h2>
         <ol class="steps">
           <li><span>01</span><div><h3>Add a repository</h3><p>Pulse asks Git for its linked worktrees.</p></div></li>
-          <li><span>02</span><div><h3>Opt in agent status</h3><p>Your CLI writes a small status file. Prompt text stays out.</p></div></li>
+          <li><span>02</span><div><h3>Opt in agent status</h3><p>Your CLI writes state, tool name, and time. Prompt and output fields are ignored.</p></div></li>
           <li><span>03</span><div><h3>Open the right terminal</h3><p>Select a row to open that exact worktree.</p></div></li>
         </ol>
       </div>
@@ -157,7 +158,7 @@ function landing(): string {
 
     <section class="privacy-section" aria-labelledby="private-title">
       <div class="section-index"><span>04</span><p>BOUNDARIES</p></div>
-      <div class="section-content"><h2 id="private-title">Your code is not the product</h2><p>Pulse reads Git metadata and an adapter status file on your machine. It does not record terminal contents, send prompts, or change Git state.</p><a href="/privacy" data-route>Read the privacy details →</a></div>
+      <div class="section-content"><h2 id="private-title">Your code is not the product</h2><p>Pulse reads Git metadata and three adapter fields. It ignores source, prompt, output, and terminal content. Scans do not change Git state.</p><a href="/privacy" data-route>Read the privacy details →</a></div>
     </section>
 
     <section class="price-section" aria-labelledby="price-title">
@@ -177,8 +178,8 @@ function landing(): string {
 
 function dashboard(mode: "demo" | "native"): string {
   const source = repository ?? SAMPLE_REPOSITORY;
-  const isLimited = mode === "native" && !isPro && source.worktrees.length > 5;
-  const data = isLimited ? { ...source, worktrees: source.worktrees.slice(0, 5) } : source;
+  const isLimited = mode === "native" && !isPro && source.worktrees.length > FREE_WORKTREE_LIMIT;
+  const data = isLimited ? { ...source, worktrees: worktreesForLicense(source.worktrees, false) } : source;
   const visible = filterItems(data.worktrees);
   const blocked = data.worktrees.filter((item) => item.agentState === "blocked").length;
   const risky = data.worktrees.filter(needsAttention).length;
@@ -228,7 +229,7 @@ function detailPanel(item: WorktreePulse, mode: "demo" | "native"): string {
 function legalPage(kind: "privacy" | "terms"): string {
   const privacy = kind === "privacy";
   return `${header()}<main id="main" class="legal-page"><p class="eyebrow">POLICY / ${privacy ? "PRIVACY" : "TERMS"}</p><h1 tabindex="-1">${privacy ? "Your repository data stays local" : "Terms for using Pulse"}</h1><p class="lede">Effective August 28, 2026</p>
-    ${privacy ? `<section><h2>What the app reads</h2><p>The desktop app reads Git worktree metadata. It reads adapter files only after you add a repository. Adapter files should contain status, tool name, and time only.</p><h2>What stays on your device</h2><p>Repository paths, Git state, adapter state, and your license token stay in local app storage. Pulse does not include analytics or crash tracking.</p><h2>Network requests</h2><p>The site checks GitHub for release files. License purchase and verification use the Sociobot billing API. The desktop monitor needs no network connection.</p><h2>Delete your data</h2><p>Remove saved repositories in the app or clear the app’s local storage. Demo data uses separate session storage and disappears when the session ends.</p>` : `<section><h2>License</h2><p>The free edition shows up to five worktrees. A $19 one-time Pulse Pro license shows every worktree and adds 10-second refresh.</p><h2>Payment and refunds</h2><p>Sociobot and Dodo are the merchant of record. Their checkout handles payment and refunds. A refunded license stops verifying.</p><h2>Safe use</h2><p>Pulse reports Git metadata but cannot guarantee branch safety. Check your repository before deleting, rebasing, or merging work.</p><h2>Warranty</h2><p>The software is provided under the MIT License without warranty. You remain responsible for your repositories and agent processes.</p>`}
+    ${privacy ? `<section><h2>What the app reads</h2><p>The desktop app reads Git worktree metadata. It reads adapter files only after you add a repository. Only state, tool name, and time enter the board.</p><h2>What stays on your device</h2><p>Repository paths, Git state, adapter state, and your license token stay in local app storage. Pulse includes no analytics or crash tracking.</p><h2>Network requests</h2><p>The site checks GitHub only when you request a download. License purchase and verification use the Sociobot billing API. Git scanning uses local commands.</p><h2>Delete your data</h2><p>Remove saved repositories in the app or clear the app’s local storage. Demo data uses separate session storage and disappears when the session ends.</p>` : `<section><h2>License</h2><p>The free edition shows up to five worktrees. A $19 one-time Pulse Pro license shows every worktree and adds 10-second refresh.</p><h2>Payment and refunds</h2><p>Sociobot and Dodo handle checkout and refunds. A refunded license stops verifying.</p><h2>Safe use</h2><p>Pulse reports Git metadata but cannot guarantee branch safety. Check your repository before deleting, rebasing, or merging work.</p><h2>Warranty</h2><p>The software is provided under the MIT License without warranty. You remain responsible for your repositories and agent processes.</p>`}
     <h2>Contact</h2><p>Email <a href="mailto:hello@sociobot.in">hello@sociobot.in</a> with questions.</p></section></main>${footer()}`;
 }
 
@@ -401,6 +402,7 @@ if (isNative && loadRepositoryPaths()[0]) {
 
 void verifyLicense().then((valid) => { if (valid !== isPro) { isPro = valid; if (!isNative && window.location.pathname === "/") render(); } });
 
-window.setInterval(() => {
-  if (isNative && isPro && repository && document.visibilityState === "visible") void refresh();
-}, 10_000);
+scheduleProRefresh(
+  () => void refresh(),
+  () => Boolean(isNative && isPro && repository && document.visibilityState === "visible"),
+);

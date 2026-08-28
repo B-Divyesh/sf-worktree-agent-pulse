@@ -17,6 +17,23 @@ test("@claim:attention shows blocked and dirty worktrees", async ({ page }) => {
   await expect(page.locator(".pulse-board [data-worktree]")).toHaveCount(4);
 });
 
+test("@claim:first-screen-demo keeps the primary action in the initial viewport", async ({ page }) => {
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 1280, height: 800 }, { width: 390, height: 844 }]) {
+    await page.setViewportSize(viewport);
+    await page.goto("/");
+    const action = page.getByRole("link", { name: "Try it with sample data" });
+    const explanation = page.getByText("Loads five worktrees. Nothing is saved.");
+    await expect(action).toBeInViewport();
+    await expect(explanation).toBeInViewport();
+    const actionBox = await action.boundingBox();
+    const explanationBox = await explanation.boundingBox();
+    expect(actionBox).not.toBeNull();
+    expect(explanationBox).not.toBeNull();
+    expect((actionBox?.y ?? viewport.height) + (actionBox?.height ?? 1)).toBeLessThanOrEqual(viewport.height);
+    expect((explanationBox?.y ?? viewport.height) + (explanationBox?.height ?? 1)).toBeLessThanOrEqual(viewport.height);
+  }
+});
+
 test("@claim:demo-private sends no repository data away", async ({ page }) => {
   const outsideRequests: string[] = [];
   page.on("request", (request) => {
@@ -34,7 +51,7 @@ test("@claim:demo-private sends no repository data away", async ({ page }) => {
 test("@claim:offline-demo reloads the sample while offline", async ({ page, context }) => {
   await page.goto("/demo");
   await page.evaluate(async () => { await navigator.serviceWorker.ready; if (!navigator.serviceWorker.controller) await new Promise<void>((resolve) => navigator.serviceWorker.addEventListener("controllerchange", () => resolve(), { once: true })); });
-  const cachedUrls = await page.evaluate(async () => (await (await caches.open("worktree-agent-pulse-v2")).keys()).map((request) => request.url));
+  const cachedUrls = await page.evaluate(async () => (await (await caches.open("worktree-agent-pulse-v3")).keys()).map((request) => request.url));
   expect(cachedUrls.some((url) => url.includes("/assets/index-"))).toBe(true);
   await context.setOffline(true);
   await page.goto("/demo");
@@ -53,4 +70,47 @@ test("@claim:no-account works without an account", async ({ page }) => {
   await expect(page.getByText("Works without an account")).toBeVisible();
   await page.getByRole("link", { name: "Try it with sample data" }).click();
   await expect(page.getByRole("heading", { name: "Worktree pulse" })).toBeVisible();
+});
+
+test("@claim:site-network waits for a download request before contacting GitHub", async ({ page }) => {
+  const outsideRequests: string[] = [];
+  page.on("request", (request) => {
+    if (new URL(request.url()).origin !== "http://127.0.0.1:4173") outsideRequests.push(request.url());
+  });
+  await page.route("https://api.github.com/repos/B-Divyesh/sf-worktree-agent-pulse/releases/latest", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({
+      html_url: "https://github.com/B-Divyesh/sf-worktree-agent-pulse/releases/tag/v0.1.4",
+      tag_name: "v0.1.4",
+      assets: [
+        { name: "worktree-agent-pulse.AppImage", browser_download_url: "https://github.com/B-Divyesh/sf-worktree-agent-pulse/releases/download/v0.1.4/worktree-agent-pulse.AppImage" },
+        { name: "worktree-agent-pulse-setup.exe", browser_download_url: "https://github.com/B-Divyesh/sf-worktree-agent-pulse/releases/download/v0.1.4/worktree-agent-pulse-setup.exe" },
+        { name: "worktree-agent-pulse.dmg", browser_download_url: "https://github.com/B-Divyesh/sf-worktree-agent-pulse/releases/download/v0.1.4/worktree-agent-pulse.dmg" },
+      ],
+    }),
+  }));
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Catch blocked agents before branches drift" })).toBeVisible();
+  expect(outsideRequests).toEqual([]);
+  await page.getByRole("button", { name: /Check download/ }).click();
+  await expect(page.getByRole("link", { name: /Download for/ })).toHaveAttribute("href", /releases\/download\/v0\.1\.4/);
+  expect(outsideRequests).toEqual(["https://api.github.com/repos/B-Divyesh/sf-worktree-agent-pulse/releases/latest"]);
+});
+
+test("@claim:license-local stores a returned license locally and sends it only to Sociobot", async ({ page }) => {
+  const outsideRequests: string[] = [];
+  await page.route("https://api.sociobot.in/api/v1/products/worktree-agent-pulse/verify?license=fixture-token", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({ valid: true, reason: "ok", expires_at: null }),
+  }));
+  page.on("request", (request) => {
+    if (new URL(request.url()).origin !== "http://127.0.0.1:4173") outsideRequests.push(request.url());
+  });
+  await page.goto("/?license=fixture-token");
+  await expect(page).toHaveURL("http://127.0.0.1:4173/");
+  expect(await page.evaluate(() => localStorage.getItem("sb_license:worktree-agent-pulse"))).toBe("fixture-token");
+  await expect.poll(() => outsideRequests.length).toBe(1);
+  expect(outsideRequests).toEqual(["https://api.sociobot.in/api/v1/products/worktree-agent-pulse/verify?license=fixture-token"]);
 });

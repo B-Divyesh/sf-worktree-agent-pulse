@@ -1,4 +1,4 @@
-const CACHE = "worktree-agent-pulse-v2";
+const CACHE = "worktree-agent-pulse-v3";
 const SHELL = ["/", "/demo", "/privacy", "/terms", "/assets/hero-lattice.webp", "/favicon.svg"];
 const BUILD_ASSETS = [];
 

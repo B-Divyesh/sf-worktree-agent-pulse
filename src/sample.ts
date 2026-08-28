@@ -18,7 +18,6 @@ export const SAMPLE_REPOSITORY: RepositoryPulse = {
       ahead: 2,
       behind: 0,
       detached: false,
-      note: "Waiting for input",
     },
     {
       id: "wt-search",
@@ -32,7 +31,6 @@ export const SAMPLE_REPOSITORY: RepositoryPulse = {
       ahead: 0,
       behind: 0,
       detached: false,
-      note: "Running tests",
     },
     {
       id: "wt-invoices",
@@ -46,7 +44,6 @@ export const SAMPLE_REPOSITORY: RepositoryPulse = {
       ahead: 4,
       behind: 1,
       detached: false,
-      note: "Stopped after commit",
     },
     {
       id: "wt-auth",
@@ -60,7 +57,6 @@ export const SAMPLE_REPOSITORY: RepositoryPulse = {
       ahead: 0,
       behind: 0,
       detached: false,
-      note: "Ready for review",
     },
     {
       id: "wt-main",

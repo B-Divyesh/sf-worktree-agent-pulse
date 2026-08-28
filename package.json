@@ -1,7 +1,7 @@
 {
   "name": "worktree-agent-pulse",
   "private": true,
-  "version": "0.1.3",
+  "version": "0.1.4",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -11,6 +11,7 @@
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "vitest run tests/unit",
     "test:e2e": "playwright test",
+    "test:checkout": "node scripts/verify-checkout.mjs",
     "preview": "vite preview --host 0.0.0.0"
   },
   "dependencies": {

@@ -8,10 +8,17 @@
   },
   {
     "id": "attention",
-    "claim": "Blocked prompts and dirty branches appear on the board.",
+    "claim": "Blocked agents and dirty branches appear on the board.",
     "where": "landing preview and demo board",
     "test": "npm run test:e2e -- --grep @claim:attention",
     "sandbox": "fresh browser context and bundled sample data; assert blocked and changed states"
+  },
+  {
+    "id": "first-screen-demo",
+    "claim": "The sample action and its explanation are visible in the initial desktop and 390px mobile viewport.",
+    "where": "landing first screen",
+    "test": "npm run test:e2e -- --grep @claim:first-screen-demo",
+    "sandbox": "fresh browser context at 1440x900, 1280x800, and 390x844; measure the full action and explanation inside each viewport"
   },
   {
     "id": "demo-private",
@@ -29,10 +36,10 @@
   },
   {
     "id": "metadata-only",
-    "claim": "Pulse reads Git metadata and one opt-in status file; it does not run Git write commands.",
-    "where": "landing privacy section, privacy page, README",
-    "test": "npm run test:unit -- -t @claim:metadata-only",
-    "sandbox": "inspect the shipped Rust core; require the three read commands and adapter path; reject Git write commands"
+    "claim": "Pulse scans Git metadata and three opt-in adapter fields; it ignores source, prompt, output, and terminal content without changing Git state.",
+    "where": "landing facts and privacy section, native first-run screen, privacy page, README",
+    "test": "cargo test --manifest-path src-tauri/Cargo.toml claim_metadata_only -- --nocapture",
+    "sandbox": "temporary real Git repository with source, prompt, output, and terminal canaries; run the native scan, assert no canary enters serialized board data, and compare Git and file state before and after"
   },
   {
     "id": "free-price",
@@ -47,5 +54,33 @@
     "where": "landing facts",
     "test": "npm run test:e2e -- --grep @claim:no-account",
     "sandbox": "fresh browser context with no cookies or storage; open the one-click demo and assert the board loads"
+  },
+  {
+    "id": "pro-capacity-refresh",
+    "claim": "Pulse Pro shows every worktree and refreshes every 10 seconds.",
+    "where": "landing paid tier, native limit notice, terms, README",
+    "test": "npm run test:unit -- -t @claim:pro-capacity-refresh",
+    "sandbox": "eight-worktree fixture; assert free mode returns five, Pro returns all eight, and the production scheduler requests exactly 10000 milliseconds"
+  },
+  {
+    "id": "site-network",
+    "claim": "The public site contacts GitHub only after the visitor requests a release download.",
+    "where": "privacy page and README",
+    "test": "npm run test:e2e -- --grep @claim:site-network",
+    "sandbox": "fresh browser context with request interception; assert no cross-origin landing requests, click download check, and assert only the GitHub Releases API request"
+  },
+  {
+    "id": "license-local",
+    "claim": "A returned license token stays in local storage and verification sends it only to the Sociobot billing API.",
+    "where": "privacy page and README",
+    "test": "npm run test:e2e -- --grep @claim:license-local",
+    "sandbox": "fresh browser context with a returned fixture license and mocked Sociobot response; assert URL stripping, namespaced local storage, and the single allowed verification request"
+  },
+  {
+    "id": "checkout-live",
+    "claim": "The $19 Pulse Pro purchase link opens a live Dodo checkout.",
+    "where": "landing paid tier, terms, README",
+    "test": "npm run test:checkout",
+    "sandbox": "make one live request to the advertised Sociobot checkout URL; require HTTP 303 to an HTTPS checkout.dodopayments.com session"
   }
 ]

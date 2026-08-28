@@ -2,6 +2,7 @@ node_modules/
 dist/
 test-results/
 playwright-report/
+.factory/evidence/
 src-tauri/target/
 src-tauri/gen/
 graphify-out/

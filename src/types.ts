@@ -12,7 +12,6 @@ export interface WorktreePulse {
   ahead: number;
   behind: number;
   detached: boolean;
-  note?: string;
 }
 
 export interface RepositoryPulse {

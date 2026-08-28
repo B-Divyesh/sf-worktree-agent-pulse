@@ -29,7 +29,6 @@ struct WorktreePulse {
     ahead: u32,
     behind: u32,
     detached: bool,
-    note: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -48,7 +47,6 @@ struct AdapterStatus {
     agent: Option<String>,
     state: Option<String>,
     updated_at: Option<String>,
-    note: Option<String>,
 }
 
 #[derive(Default, Debug, PartialEq)]
@@ -113,18 +111,13 @@ fn parse_status(output: &str) -> GitState {
     state
 }
 
-fn read_adapter(path: &Path) -> (String, String, Option<String>, Option<String>) {
+fn read_adapter(path: &Path) -> (String, String, Option<String>) {
     let file = path.join(".worktree-agent-pulse").join("status.json");
     let Ok(content) = fs::read_to_string(file) else {
-        return ("No adapter".into(), "none".into(), None, None);
+        return ("No adapter".into(), "none".into(), None);
     };
     let Ok(status) = serde_json::from_str::<AdapterStatus>(&content) else {
-        return (
-            "Adapter error".into(),
-            "none".into(),
-            None,
-            Some("Status file is not valid JSON".into()),
-        );
+        return ("Adapter error".into(), "none".into(), None);
     };
     let state = status
         .state
@@ -134,7 +127,6 @@ fn read_adapter(path: &Path) -> (String, String, Option<String>, Option<String>)
         status.agent.unwrap_or_else(|| "Agent adapter".into()),
         state,
         status.updated_at,
-        status.note,
     )
 }
 
@@ -157,7 +149,7 @@ fn scan(path: &Path) -> Result<RepositoryPulse, String> {
         match git(&worktree_path, &["status", "--porcelain=v2", "--branch"]) {
             Ok(output) => {
                 let git_state = parse_status(&output);
-                let (agent, agent_state, updated_at, note) = read_adapter(&worktree_path);
+                let (agent, agent_state, updated_at) = read_adapter(&worktree_path);
                 let name = worktree_path
                     .file_name()
                     .and_then(|value| value.to_str())
@@ -175,7 +167,6 @@ fn scan(path: &Path) -> Result<RepositoryPulse, String> {
                     ahead: git_state.ahead,
                     behind: git_state.behind,
                     detached: git_state.detached,
-                    note,
                 });
             }
             Err(error) => warnings.push(format!(
@@ -253,10 +244,10 @@ fn spawn_terminal(path: &Path) -> Result<(), String> {
                 return Ok(());
             }
         }
-        return Err(
+        Err(
             "No terminal app was found. Set the TERMINAL environment variable and try again."
                 .into(),
-        );
+        )
     }
     #[cfg(any(target_os = "macos", target_os = "windows"))]
     Ok(())
@@ -303,6 +294,16 @@ pub fn run() {
 mod tests {
     use super::*;
 
+    fn run_git(path: &Path, args: &[&str]) {
+        let status = Command::new("git")
+            .arg("-C")
+            .arg(path)
+            .args(args)
+            .status()
+            .expect("git should start in the privacy fixture");
+        assert!(status.success(), "git command failed: {args:?}");
+    }
+
     #[test]
     fn reads_worktree_paths_without_touching_other_lines() {
         let output = "worktree /tmp/main\nHEAD aabb\nbranch refs/heads/main\n\nworktree /tmp/feature one\nHEAD ccdd\ndetached\n";
@@ -335,5 +336,59 @@ mod tests {
         let output = "# branch.oid abc\n# branch.head (detached)\n";
         assert_eq!(parse_status(output).branch, "Detached HEAD");
         assert!(parse_status(output).detached);
+    }
+
+    /// @claim:metadata-only
+    #[test]
+    fn claim_metadata_only_ignores_content_and_preserves_git_state() {
+        let unique = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let root = std::env::temp_dir().join(format!("pulse-privacy-{unique}"));
+        fs::create_dir_all(root.join(".worktree-agent-pulse")).unwrap();
+        run_git(&root, &["init", "--quiet"]);
+        run_git(&root, &["config", "user.email", "pulse@example.invalid"]);
+        run_git(&root, &["config", "user.name", "Pulse Test"]);
+
+        let source_canary = "SOURCE-CONTENT-MUST-NOT-ENTER-PULSE";
+        let prompt_canary = "PROMPT-CONTENT-MUST-NOT-ENTER-PULSE";
+        let output_canary = "TERMINAL-OUTPUT-MUST-NOT-ENTER-PULSE";
+        fs::write(root.join("private-source.txt"), source_canary).unwrap();
+        fs::write(root.join("terminal-output.log"), output_canary).unwrap();
+        fs::write(
+            root.join(".worktree-agent-pulse/status.json"),
+            format!(
+                r#"{{"agent":"Codex","state":"blocked","updatedAt":"2026-08-28T13:00:00Z","prompt":"{prompt_canary}","output":"{output_canary}"}}"#
+            ),
+        )
+        .unwrap();
+
+        let before_status = git(&root, &["status", "--porcelain=v2", "--branch"]).unwrap();
+        let pulse = scan(&root).unwrap();
+        let serialized = serde_json::to_string(&pulse).unwrap();
+        let after_status = git(&root, &["status", "--porcelain=v2", "--branch"]).unwrap();
+
+        assert_eq!(pulse.worktrees.len(), 1);
+        assert_eq!(pulse.worktrees[0].agent, "Codex");
+        assert_eq!(pulse.worktrees[0].agent_state, "blocked");
+        assert_eq!(
+            pulse.worktrees[0].updated_at.as_deref(),
+            Some("2026-08-28T13:00:00Z")
+        );
+        assert!(!serialized.contains(source_canary));
+        assert!(!serialized.contains(prompt_canary));
+        assert!(!serialized.contains(output_canary));
+        assert_eq!(before_status, after_status);
+        assert_eq!(
+            fs::read_to_string(root.join("private-source.txt")).unwrap(),
+            source_canary
+        );
+        assert_eq!(
+            fs::read_to_string(root.join("terminal-output.log")).unwrap(),
+            output_canary
+        );
+
+        fs::remove_dir_all(root).unwrap();
     }
 }

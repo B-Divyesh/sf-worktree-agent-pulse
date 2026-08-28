@@ -9,7 +9,7 @@ Audited August 28, 2026. Labels and fragments are included where they carry mean
 | Try it with sample data | 5 | Pass |
 | Loads five worktrees. | 3 | Pass |
 | Nothing is saved. | 3 | Pass |
-| No prompt or output capture | 5 | Pass |
+| Prompt and output fields are ignored | 6 | Pass |
 | Works without an account | 4 | Pass |
 | Five worktrees free. | 3 | Pass |
 | Pro is $19 once. | 4 | Pass |
@@ -17,19 +17,20 @@ Audited August 28, 2026. Labels and fragments are included where they carry mean
 | One blocked agent. | 3 | Pass |
 | One glance. | 2 | Pass |
 | Scan worktrees by urgency | 4 | Pass |
-| Blocked prompts and dirty branches rise above routine activity. | 8 | Pass |
+| Blocked agents and dirty branches rise above routine activity. | 8 | Pass |
 | Keep your terminal. | 3 | Pass |
 | Add one view. | 3 | Pass |
 | Add a repository | 3 | Pass |
 | Pulse asks Git for its linked worktrees. | 7 | Pass |
 | Opt in agent status | 4 | Pass |
-| Your CLI writes a small status file. | 7 | Pass |
-| Prompt text stays out. | 4 | Pass |
+| Your CLI writes state, tool name, and time. | 8 | Pass |
+| Prompt and output fields are ignored. | 6 | Pass |
 | Open the right terminal | 4 | Pass |
 | Select a row to open that exact worktree. | 8 | Pass |
 | Your code is not the product | 6 | Pass |
-| Pulse reads Git metadata and an adapter status file on your machine. | 11 | Pass |
-| It does not record terminal contents, send prompts, or change Git state. | 11 | Pass |
+| Pulse reads Git metadata and three adapter fields. | 8 | Pass |
+| It ignores source, prompt, output, and terminal content. | 8 | Pass |
+| Scans do not change Git state. | 6 | Pass |
 | Use five worktrees free | 4 | Pass |
 | Pay once to show every worktree and refresh every 10 seconds. | 11 | Pass |
 | Install for your platform | 4 | Pass |
