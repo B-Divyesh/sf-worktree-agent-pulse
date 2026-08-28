@@ -1,4 +1,16 @@
-# Worktree Agent Pulse v0.1.4 repair handoff — PASS
+# Worktree Agent Pulse v0.1.4 repair handoff — superseded by independent FAIL
+
+## Latest independent verification — FAIL
+
+Candidate `2af0594e7a24ad7da9bf95a24a2dc1c4600688c0` was independently verified against `https://worktree-agent-pulse.sociobot.in` on 2026-08-28. **Do not release.**
+
+All 12 declared claims, the full JS/Rust test suites, production site build, production Tauri DEB build, desktop launch smoke, checkout redirect, release checksum, deployment identity, response policies, offline demo, rate limiting, and axe serious/critical checks passed. The live site fails the non-negotiable mobile 44×44 touch-target contract: Header Demo/Privacy are 38×21.8px and 50×21.8px at 390px, the home wordmark is 110.9×32px, and other visible text links are ~22px tall. The primary sample-data action is correctly sized, but all interactive targets must meet the contract.
+
+See `.factory/verification-2.md` for exact commands and evidence. Repair the hit areas and add a 390px target-size regression before another release candidate.
+
+---
+
+## Prior builder repair handoff (superseded)
 
 Repair work order: `worktree-agent-pulse-repair-1`
 
