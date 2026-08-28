@@ -1,0 +1,39 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Worktree Agent Pulse",
+  "version": "0.1.0",
+  "identifier": "in.sociobot.worktree-agent-pulse",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:4173",
+    "beforeBuildCommand": "npm run build:site",
+    "frontendDist": "../dist/site"
+  },
+  "app": {
+    "windows": [{
+      "label": "main",
+      "title": "Worktree Agent Pulse",
+      "width": 1280,
+      "height": 820,
+      "minWidth": 390,
+      "minHeight": 620,
+      "resizable": true,
+      "center": true
+    }],
+    "security": {
+      "csp": "default-src 'self' ipc: http://ipc.localhost; script-src 'self'; style-src 'self'; img-src 'self' asset: http://asset.localhost data:; font-src 'self'; connect-src 'self' ipc: http://ipc.localhost https://api.sociobot.in; object-src 'none'"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "category": "DeveloperTool",
+    "shortDescription": "See worktree and coding-agent status in one local board.",
+    "longDescription": "Worktree Agent Pulse discovers Git worktrees, reads opt-in agent status files, and opens the right terminal without recording terminal content.",
+    "copyright": "Copyright 2026 Param Factory",
+    "icon": ["icons/icon.png"],
+    "linux": { "appimage": { "bundleMediaFramework": false }, "deb": { "depends": [] } },
+    "macOS": { "minimumSystemVersion": "10.15" },
+    "windows": { "wix": { "language": "en-US" } }
+  }
+}
