@@ -51,7 +51,7 @@ The signature motion is a **single travelling pulse**: on first reveal, a mint n
 
 ## Asset plan and provenance
 
-- `hero-lattice.webp` / `hero-lattice.avif`: an original 3D geometric commit lattice used behind the landing preview.
+- `hero-lattice.webp`: an original 3D geometric commit lattice used behind the landing preview.
 - `social-card.webp`: a 1200×630 crop composed from the same art with product UI geometry and no required text embedded in the generated image.
 - Logo, status marks, favicon, and UI icons are hand-authored SVG geometry.
 

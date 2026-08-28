@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://worktree-agent-pulse.sociobot.in/sitemap.xml

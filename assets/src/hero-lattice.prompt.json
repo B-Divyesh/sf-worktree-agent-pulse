@@ -1,0 +1,8 @@
+{
+  "tool": "/opt/fleet/lib/gen-image.sh",
+  "deployment": "factory-image",
+  "date": "2026-08-28",
+  "size": "1536x1024",
+  "quality": "high",
+  "prompt": "Use case: stylized-concept. Asset type: landing hero illustration. A precise isometric sculpture of five branching Git worktree rails, made from matte graphite and translucent mint acrylic, with one amber warning node and one coral blocked node. Deep near-black architectural backdrop, fine drafting grid, controlled studio rim light, orthographic 35mm view, generous dark negative space, crisp geometric edges, subtle recycled paper grain. Palette: #080d0d, #7cf7c4, #ffc857, #ff6b5f, #6bb8ff. No screens, no people, no terminal text, no letters, no logos, no watermark, no generic gradient blobs."
+}
