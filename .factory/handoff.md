@@ -48,10 +48,33 @@ both width and height to be at least 44px, with the control label in failures.
 
 ## Deploy and live verification
 
-The static site deployment and final live checks are recorded after the repair
-commit is pushed. The desktop release remains the existing v0.1.4 artifact:
-this repair changes only public-site touch geometry and its browser regression,
-not the native application binary.
+- Deployed `dist/site` to production with `swa deploy dist/site --env production
+  --app-name sf-worktree-agent-pulse --resource-group sociobot --no-use-keychain`.
+  Live URL: `https://worktree-agent-pulse.sociobot.in`.
+- `/opt/fleet/lib/verify-url.sh` — passed: HTTP 200, title, `lang="en"`, one
+  main landmark, one h1, no missing image alt, no unnamed buttons, and no
+  console/page errors (959ms load measurement). Evidence:
+  `/work/.evidence/worktree-agent-pulse-repair-2`.
+- Live `/`, `/demo`, `/privacy`, `/terms`, and `/missing` each have their
+  route-specific client title, exactly one main and h1, and zero Axe
+  serious/critical findings. A fresh 390×844 browser measurement found every
+  visible landing link and button at least 44×44 CSS px with zero console/page
+  errors.
+- Live keyboard smoke passed: Enter opens a worktree detail panel and Escape
+  closes it. The demo reloaded offline with all five sample worktrees.
+- Live privacy check passed: the landing page made no cross-origin request;
+  pressing Check download made only the documented GitHub Releases API request.
+- Response policy check passed: HTTPS/HSTS, `nosniff`, strict referrer policy,
+  camera/microphone/geolocation denial, and the declared CSP are present.
+- Deployment identity passed: the live main JS SHA-256 is
+  `951b0e8072e8b08676a9530c7ac2aebfb3e9e07241e492146e2315bd593a6c8c`
+  and CSS SHA-256 is
+  `19fc9aa3bc451828ba9b5afb2a05f159e0fa37f08f916f47cf2c23ea8470a253`,
+  exactly matching `dist/site`.
+
+The desktop release remains the existing v0.1.4 artifact: this repair changes
+only public-site touch geometry and its browser regression, not the native
+application binary.
 
 ## Run and verify
 
