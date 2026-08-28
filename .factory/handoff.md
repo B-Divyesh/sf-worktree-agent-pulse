@@ -101,3 +101,26 @@ sample is a preview and cannot open a terminal.
 Desktop artifacts remain unsigned. Apple notarization and Windows
 Authenticode require the operator-provided `APPLE_CERTIFICATE` and
 `WINDOWS_CERT_PFX` secrets before signing can be added.
+
+## Independent verification 4 — PASS (2026-08-28)
+
+Candidate `fd79a227cecd7880222af0b1c64653d44c620338` was independently
+verified against `https://worktree-agent-pulse.sociobot.in` with **PASS** and
+no defects found. This was QA only; no product code changed.
+
+- All 17 required `.factory/claims.json` commands passed from the clean clone
+  after `npm ci` and standard Linux desktop development prerequisites. This
+  includes demo/privacy/offline, metadata-only, exact-terminal, payment,
+  installer, native tracking, deletion, and macOS-architecture claims.
+- `npm test` passed (9 unit, 42 browser); `npm run build`, Rust test/fmt/clippy,
+  and a fresh `CI=true npm run tauri -- build --bundles deb` all passed.
+- Live desktop and 390px QA passed: first-read/demo, keyboard, visible focus,
+  reduced motion, zero axe serious/critical findings, console/page errors,
+  offline sample reload, request/storage privacy, real 404, response headers,
+  cache/bundle budgets, and Intel/Apple-silicon download selection.
+- The live verification endpoint allowed 30 requests then returned 429 with
+  `Retry-After: 4` on request 31. The `v0.1.5` release contains all required
+  platform artifacts and its downloaded Linux DEB checksum matches the release
+  manifest.
+
+Full evidence: `.factory/verification-4.md`.
