@@ -23,7 +23,7 @@ jobs:
             args: "--bundles appimage,deb"
             rust_target: ""
           - platform: windows-latest
-            args: "--bundles msi,nsis"
+            args: "--bundles nsis"
             rust_target: ""
           - platform: macos-latest
             args: "--target aarch64-apple-darwin --bundles dmg"
