@@ -63,7 +63,7 @@ function footer(): string {
   return `<footer class="site-footer">
     <p>See blocked agents and unsafe worktrees in one local board.</p>
     <nav aria-label="Footer"><a href="/privacy" data-route>Privacy</a><a href="/terms" data-route>Terms</a><a href="https://param.sociobot.in" target="_blank" rel="noreferrer">Built by Param Factory <span class="sr-only">(opens in a new tab)</span></a></nav>
-    <p class="build-id">v0.1.0 · Generated artwork disclosed</p>
+    <p class="build-id">v0.1.1 · Generated artwork disclosed</p>
   </footer>`;
 }
 
