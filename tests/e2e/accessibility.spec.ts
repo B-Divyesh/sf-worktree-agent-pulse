@@ -36,6 +36,23 @@ test("footer attribution is text instead of a dead external link", async ({ page
   await expect(page.locator('footer a[href*="param.sociobot.in"]')).toHaveCount(0);
 });
 
+test("mobile landing controls have 44px touch targets", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+
+  const controls = page.locator("a, button");
+  for (let index = 0; index < await controls.count(); index += 1) {
+    const control = controls.nth(index);
+    if (!await control.isVisible()) continue;
+
+    const label = (await control.innerText()).trim().replace(/\s+/g, " ") || await control.getAttribute("aria-label") || `control ${index}`;
+    const box = await control.boundingBox();
+    expect(box, `${label} has a measurable hit area`).not.toBeNull();
+    expect(box?.width, `${label} is at least 44px wide`).toBeGreaterThanOrEqual(44);
+    expect(box?.height, `${label} is at least 44px high`).toBeGreaterThanOrEqual(44);
+  }
+});
+
 test("buy action targets the provisioned checkout endpoint", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("link", { name: "Buy Pulse Pro" })).toHaveAttribute(
