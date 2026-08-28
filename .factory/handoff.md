@@ -1,4 +1,15 @@
-# Worktree Agent Pulse v0.1.3 handoff
+# Worktree Agent Pulse v0.1.3 handoff — **FAIL**
+
+> **Independent verifier verdict (2026-08-28): FAIL.** This candidate must not be released. Full fresh evidence is in `.factory/verification.md`.
+
+## Independent verification — release blockers
+
+1. The live **Buy Pulse Pro** URL returns HTTP 404 (`enabled factory product`), so the advertised $19 one-time purchase cannot be completed.
+2. On desktop 1440×900 and 1280×800, **Try it with sample data** is below the initial viewport, violating the mandatory first-screen/demo contract.
+3. Several live and README privacy/paid claims have no exact entry and observable test in `.factory/claims.json`.
+4. The footer target `https://param.sociobot.in/` did not resolve in fresh verification.
+
+The verifier did confirm all seven declared claim commands, `npm test`, `npm run build`, Rust tests (with Linux Tauri prerequisites), live demo/offline behavior, accessibility checks, release asset checksum, and billing API rate limiting. Enable checkout, bring the CTA into the initial desktop viewport, test every retained promise, and repair/remove the dead link before re-verification.
 
 ## What was built
 
@@ -30,7 +41,7 @@ npm run tauri dev
 
 The static deploy command is `npm run build`. Output lands in `dist/site`, with `index.html` at that root.
 
-## Verification completed
+## Builder-reported verification (superseded by independent FAIL above)
 
 - `npm test`: passed, 3 unit tests and 26 Playwright tests.
 - Browsers: desktop Chromium and Chromium at 390×844.
