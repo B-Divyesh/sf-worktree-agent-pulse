@@ -1,14 +1,17 @@
 use serde::{Deserialize, Serialize};
 use std::{
     collections::hash_map::DefaultHasher,
-    env,
-    fs,
+    env, fs,
     hash::{Hash, Hasher},
     path::{Path, PathBuf},
     process::{Command, Stdio},
     time::{SystemTime, UNIX_EPOCH},
 };
-use tauri::{menu::{Menu, MenuItem}, tray::TrayIconBuilder, Manager};
+use tauri::{
+    menu::{Menu, MenuItem},
+    tray::TrayIconBuilder,
+    Manager,
+};
 
 #[derive(Debug, Serialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -65,13 +68,20 @@ fn git(path: &Path, args: &[&str]) -> Result<String, String> {
         .map_err(|error| format!("Git could not start: {error}"))?;
     if !output.status.success() {
         let message = String::from_utf8_lossy(&output.stderr).trim().to_owned();
-        return Err(if message.is_empty() { "Git could not read this repository.".into() } else { message });
+        return Err(if message.is_empty() {
+            "Git could not read this repository.".into()
+        } else {
+            message
+        });
     }
     Ok(String::from_utf8_lossy(&output.stdout).into_owned())
 }
 
 fn parse_worktree_paths(output: &str) -> Vec<PathBuf> {
-    output.lines().filter_map(|line| line.strip_prefix("worktree ").map(PathBuf::from)).collect()
+    output
+        .lines()
+        .filter_map(|line| line.strip_prefix("worktree ").map(PathBuf::from))
+        .collect()
 }
 
 fn parse_status(output: &str) -> GitState {
@@ -79,11 +89,21 @@ fn parse_status(output: &str) -> GitState {
     for line in output.lines() {
         if let Some(branch) = line.strip_prefix("# branch.head ") {
             state.detached = branch == "(detached)";
-            state.branch = if state.detached { "Detached HEAD".into() } else { branch.into() };
+            state.branch = if state.detached {
+                "Detached HEAD".into()
+            } else {
+                branch.into()
+            };
         } else if let Some(ab) = line.strip_prefix("# branch.ab ") {
             let mut parts = ab.split_whitespace();
-            state.ahead = parts.next().and_then(|part| part.trim_start_matches('+').parse().ok()).unwrap_or(0);
-            state.behind = parts.next().and_then(|part| part.trim_start_matches('-').parse().ok()).unwrap_or(0);
+            state.ahead = parts
+                .next()
+                .and_then(|part| part.trim_start_matches('+').parse().ok())
+                .unwrap_or(0);
+            state.behind = parts
+                .next()
+                .and_then(|part| part.trim_start_matches('-').parse().ok())
+                .unwrap_or(0);
         } else if !line.starts_with('#') && !line.trim().is_empty() {
             state.dirty += 1;
         }
@@ -97,10 +117,23 @@ fn read_adapter(path: &Path) -> (String, String, Option<String>, Option<String>)
         return ("No adapter".into(), "none".into(), None, None);
     };
     let Ok(status) = serde_json::from_str::<AdapterStatus>(&content) else {
-        return ("Adapter error".into(), "none".into(), None, Some("Status file is not valid JSON".into()));
+        return (
+            "Adapter error".into(),
+            "none".into(),
+            None,
+            Some("Status file is not valid JSON".into()),
+        );
     };
-    let state = status.state.filter(|value| matches!(value.as_str(), "working" | "blocked" | "idle")).unwrap_or_else(|| "idle".into());
-    (status.agent.unwrap_or_else(|| "Agent adapter".into()), state, status.updated_at, status.note)
+    let state = status
+        .state
+        .filter(|value| matches!(value.as_str(), "working" | "blocked" | "idle"))
+        .unwrap_or_else(|| "idle".into());
+    (
+        status.agent.unwrap_or_else(|| "Agent adapter".into()),
+        state,
+        status.updated_at,
+        status.note,
+    )
 }
 
 fn stable_id(path: &Path) -> String {
@@ -110,7 +143,9 @@ fn stable_id(path: &Path) -> String {
 }
 
 fn scan(path: &Path) -> Result<RepositoryPulse, String> {
-    if !path.is_dir() { return Err("The selected repository folder no longer exists.".into()); }
+    if !path.is_dir() {
+        return Err("The selected repository folder no longer exists.".into());
+    }
     let root_text = git(path, &["rev-parse", "--show-toplevel"])?;
     let root = PathBuf::from(root_text.trim());
     let list = git(&root, &["worktree", "list", "--porcelain"])?;
@@ -121,19 +156,49 @@ fn scan(path: &Path) -> Result<RepositoryPulse, String> {
             Ok(output) => {
                 let git_state = parse_status(&output);
                 let (agent, agent_state, updated_at, note) = read_adapter(&worktree_path);
-                let name = worktree_path.file_name().and_then(|value| value.to_str()).unwrap_or("worktree").to_owned();
+                let name = worktree_path
+                    .file_name()
+                    .and_then(|value| value.to_str())
+                    .unwrap_or("worktree")
+                    .to_owned();
                 worktrees.push(WorktreePulse {
-                    id: stable_id(&worktree_path), name, path: worktree_path.to_string_lossy().into_owned(), branch: git_state.branch,
-                    agent, agent_state, updated_at, dirty: git_state.dirty, ahead: git_state.ahead, behind: git_state.behind,
-                    detached: git_state.detached, note,
+                    id: stable_id(&worktree_path),
+                    name,
+                    path: worktree_path.to_string_lossy().into_owned(),
+                    branch: git_state.branch,
+                    agent,
+                    agent_state,
+                    updated_at,
+                    dirty: git_state.dirty,
+                    ahead: git_state.ahead,
+                    behind: git_state.behind,
+                    detached: git_state.detached,
+                    note,
                 });
             }
-            Err(error) => warnings.push(format!("Could not scan {}: {error}", worktree_path.display())),
+            Err(error) => warnings.push(format!(
+                "Could not scan {}: {error}",
+                worktree_path.display()
+            )),
         }
     }
-    let name = root.file_name().and_then(|value| value.to_str()).unwrap_or("repository").to_owned();
-    let scanned_at = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_millis().to_string();
-    Ok(RepositoryPulse { root: root.to_string_lossy().into_owned(), name, scanned_at, worktrees, warnings })
+    let name = root
+        .file_name()
+        .and_then(|value| value.to_str())
+        .unwrap_or("repository")
+        .to_owned();
+    let scanned_at = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis()
+        .to_string();
+    Ok(RepositoryPulse {
+        root: root.to_string_lossy().into_owned(),
+        name,
+        scanned_at,
+        worktrees,
+        warnings,
+    })
 }
 
 #[tauri::command]
@@ -142,25 +207,56 @@ fn scan_repository(path: String) -> Result<RepositoryPulse, String> {
 }
 
 fn spawn_terminal(path: &Path) -> Result<(), String> {
-    if !path.is_dir() { return Err("The worktree folder no longer exists.".into()); }
+    if !path.is_dir() {
+        return Err("The worktree folder no longer exists.".into());
+    }
     #[cfg(target_os = "macos")]
-    { Command::new("open").args(["-a", "Terminal"]).arg(path).spawn().map_err(|error| format!("Terminal could not start: {error}"))?; }
+    {
+        Command::new("open")
+            .args(["-a", "Terminal"])
+            .arg(path)
+            .spawn()
+            .map_err(|error| format!("Terminal could not start: {error}"))?;
+    }
     #[cfg(target_os = "windows")]
-    { Command::new("cmd").args(["/C", "start", "", "cmd.exe", "/K", "cd", "/d"]).arg(path).spawn().map_err(|error| format!("Terminal could not start: {error}"))?; }
+    {
+        Command::new("cmd")
+            .args(["/C", "start", "", "cmd.exe", "/K", "cd", "/d"])
+            .arg(path)
+            .spawn()
+            .map_err(|error| format!("Terminal could not start: {error}"))?;
+    }
     #[cfg(target_os = "linux")]
     {
         if let Ok(terminal) = env::var("TERMINAL") {
-            if Command::new(&terminal).current_dir(path).spawn().is_ok() { return Ok(()); }
+            if Command::new(&terminal).current_dir(path).spawn().is_ok() {
+                return Ok(());
+            }
         }
-        let candidates: [(&str, &[&str]); 4] = [("x-terminal-emulator", &[]), ("gnome-terminal", &["--working-directory"]), ("konsole", &["--workdir"]), ("kitty", &["--directory"])];
+        let candidates: [(&str, &[&str]); 4] = [
+            ("x-terminal-emulator", &[]),
+            ("gnome-terminal", &["--working-directory"]),
+            ("konsole", &["--workdir"]),
+            ("kitty", &["--directory"]),
+        ];
         for (program, args) in candidates {
             let mut command = Command::new(program);
             command.args(args);
-            if !args.is_empty() { command.arg(path); } else { command.current_dir(path); }
-            if command.spawn().is_ok() { return Ok(()); }
+            if !args.is_empty() {
+                command.arg(path);
+            } else {
+                command.current_dir(path);
+            }
+            if command.spawn().is_ok() {
+                return Ok(());
+            }
         }
-        return Err("No terminal app was found. Set the TERMINAL environment variable and try again.".into());
+        return Err(
+            "No terminal app was found. Set the TERMINAL environment variable and try again."
+                .into(),
+        );
     }
+    #[cfg(any(target_os = "macos", target_os = "windows"))]
     Ok(())
 }
 
@@ -177,13 +273,23 @@ pub fn run() {
             let show = MenuItem::with_id(app, "show", "Show Pulse", true, None::<&str>)?;
             let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
             let menu = Menu::with_items(app, &[&show, &quit])?;
-            let mut tray = TrayIconBuilder::new().tooltip("Worktree Agent Pulse").menu(&menu);
-            if let Some(icon) = app.default_window_icon() { tray = tray.icon(icon.clone()); }
+            let mut tray = TrayIconBuilder::new()
+                .tooltip("Worktree Agent Pulse")
+                .menu(&menu);
+            if let Some(icon) = app.default_window_icon() {
+                tray = tray.icon(icon.clone());
+            }
             tray.on_menu_event(|app, event| match event.id.as_ref() {
-                "show" => { if let Some(window) = app.get_webview_window("main") { let _ = window.show(); let _ = window.set_focus(); } }
+                "show" => {
+                    if let Some(window) = app.get_webview_window("main") {
+                        let _ = window.show();
+                        let _ = window.set_focus();
+                    }
+                }
                 "quit" => app.exit(0),
                 _ => {}
-            }).build(app)?;
+            })
+            .build(app)?;
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![scan_repository, open_terminal])
@@ -198,13 +304,28 @@ mod tests {
     #[test]
     fn reads_worktree_paths_without_touching_other_lines() {
         let output = "worktree /tmp/main\nHEAD aabb\nbranch refs/heads/main\n\nworktree /tmp/feature one\nHEAD ccdd\ndetached\n";
-        assert_eq!(parse_worktree_paths(output), vec![PathBuf::from("/tmp/main"), PathBuf::from("/tmp/feature one")]);
+        assert_eq!(
+            parse_worktree_paths(output),
+            vec![
+                PathBuf::from("/tmp/main"),
+                PathBuf::from("/tmp/feature one")
+            ]
+        );
     }
 
     #[test]
     fn parses_branch_safety_counts() {
         let output = "# branch.oid abc\n# branch.head agent/fix\n# branch.upstream origin/agent/fix\n# branch.ab +3 -2\n1 .M N... file.ts\n? new.ts\n";
-        assert_eq!(parse_status(output), GitState { branch: "agent/fix".into(), dirty: 2, ahead: 3, behind: 2, detached: false });
+        assert_eq!(
+            parse_status(output),
+            GitState {
+                branch: "agent/fix".into(),
+                dirty: 2,
+                ahead: 3,
+                behind: 2,
+                detached: false
+            }
+        );
     }
 
     #[test]

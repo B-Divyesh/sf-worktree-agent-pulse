@@ -11,7 +11,7 @@
   --coral: #ff6b5f;
   --blue: #6bb8ff;
   --display: "Space Grotesk Variable", "Arial Narrow", sans-serif;
-  --mono: "IBM Plex Mono Variable", ui-monospace, monospace;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
   font-family: var(--display);
   font-synthesis: none;
   color: var(--paper);
@@ -116,6 +116,7 @@ button.worktree-row:hover, .worktree-row.selected { background: var(--ink-2); }
 .price strong { font-size: 4.5rem; line-height: 1; letter-spacing: -.06em; }
 .price span { margin-bottom: 20px; color: var(--mist); }
 .text-button { min-height: 44px; padding: 8px 0; border: 0; background: none; color: var(--blue); text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
+.license-active { padding: 10px 14px; border: 1px solid var(--pulse); color: var(--pulse)!important; font-family: var(--mono); font-size: .78rem; }
 .download-actions { display: flex; align-items: center; gap: 24px; margin: 24px 0 16px; }
 .signing-note { font-size: .84rem; }
 
@@ -143,6 +144,7 @@ button.worktree-row:hover, .worktree-row.selected { background: var(--ink-2); }
 .filter-bar button { display: inline-flex; min-height: 44px; align-items: center; gap: 9px; padding: 7px 14px; border: 1px solid var(--line); background: transparent; color: var(--mist); cursor: pointer; white-space: nowrap; }
 .filter-bar button[aria-pressed="true"] { border-color: var(--pulse); background: var(--ink-2); color: var(--paper); }
 .filter-bar span { color: var(--pulse); font: .7rem var(--mono); }
+.limit-note { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; padding: 12px 16px; border-left: 3px solid var(--amber); background: #1b1a13; color: var(--mist); font-size: .82rem; }.limit-note strong { color: var(--paper); }.limit-note .text-button { margin-left: auto; white-space: nowrap; }
 .pulse-board { overflow: hidden; border: 1px solid var(--line); background: rgba(16,24,23,.75); }
 .pulse-board .worktree-row { min-height: 92px; }
 .empty-state { padding: 48px; text-align: center; }.empty-state p { color: var(--mist); margin: 6px 0 0; }
@@ -177,6 +179,7 @@ button.worktree-row:hover, .worktree-row.selected { background: var(--ink-2); }
   .product-preview, .how-section, .privacy-section, .price-section, .download-section { display: block; }.section-index { display: flex; gap: 12px; padding: 22px 20px; border-right: 0; border-bottom: 1px solid var(--line); }.section-index p, .section-index span { margin: 0; writing-mode: initial; }.section-content { padding: 56px 20px; }.mini-window { margin-top: 36px; box-shadow: 10px 10px 0 #0d1413, 11px 11px 0 var(--line); }.steps li { grid-template-columns: 50px 1fr; }.privacy-section .section-content::after { display: none; }.price-grid { grid-template-columns: 1fr; }.download-actions, .site-footer { align-items: stretch; flex-direction: column; }.site-footer { display: flex; padding: 40px 20px; }.site-footer nav { flex-wrap: wrap; }
   .demo-banner { align-items: flex-start; flex-direction: column; padding-block: 10px; }.demo-banner div { width: 100%; justify-content: space-between; }
   .app-header { padding: 12px 16px; }.app-actions button span { display: none; }.app-actions .compact { max-width: 130px; font-size: .75rem; }.pulse-main { padding: 32px 14px 70px; }.pulse-heading { margin-bottom: 30px; }.summary { gap: 12px; }.summary strong { font-size: 1.45rem; }
+  .limit-note { align-items: flex-start; flex-direction: column; }.limit-note .text-button { margin-left: 0; }
   .pulse-board { border-inline: 0; }.pulse-board .board-head { display: none; }.pulse-board .worktree-row { --columns: 1fr auto; grid-template-columns: var(--columns); gap: 6px 12px; min-height: 118px; padding: 15px 34px; }.pulse-board .agent-state { align-items: end; }.pulse-board .git-metrics { grid-column: 1 / -1; }.pulse-board .row-arrow { right: 10px; }.pulse-board .rail { left: 10px; }
   .license-dialog { padding: 54px 22px 28px; }.legal-page, .not-found, .native-empty { padding: 64px 20px; }
 }

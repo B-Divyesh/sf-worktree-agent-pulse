@@ -22,6 +22,10 @@ export function resetDemo(seed: RepositoryPulse): RepositoryPulse {
   return getDemoRepository(seed);
 }
 
+export function clearDemo(): void {
+  sessionStorage.removeItem(DEMO_KEY);
+}
+
 export function loadRepositoryPaths(): string[] {
   try {
     return JSON.parse(localStorage.getItem(REAL_KEY) ?? "[]") as string[];

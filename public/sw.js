@@ -1,8 +1,13 @@
-const CACHE = "worktree-agent-pulse-v1";
+const CACHE = "worktree-agent-pulse-v2";
 const SHELL = ["/", "/demo", "/privacy", "/terms", "/assets/hero-lattice.webp", "/favicon.svg"];
+const BUILD_ASSETS = [];
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL)).then(() => self.skipWaiting()));
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE);
+    await cache.addAll([...SHELL, ...BUILD_ASSETS]);
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener("activate", (event) => {
@@ -11,7 +16,21 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET" || new URL(event.request.url).origin !== self.location.origin) return;
-  event.respondWith(caches.match(event.request).then((cached) => cached || fetch(event.request).then((response) => {
-    const copy = response.clone(); caches.open(CACHE).then((cache) => cache.put(event.request, copy)); return response;
-  }).catch(() => caches.match("/index.html"))));
+  event.respondWith((async () => {
+    const cache = await caches.open(CACHE);
+    if (event.request.mode === "navigate") {
+      try {
+        const response = await fetch(event.request);
+        await cache.put(event.request, response.clone());
+        return response;
+      } catch {
+        return (await cache.match(event.request, { ignoreVary: true })) || (await cache.match("/", { ignoreVary: true }));
+      }
+    }
+    const cached = await cache.match(event.request, { ignoreVary: true });
+    if (cached) return cached;
+    const response = await fetch(event.request);
+    await cache.put(event.request, response.clone());
+    return response;
+  })());
 });

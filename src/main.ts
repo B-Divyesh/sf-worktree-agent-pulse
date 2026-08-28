@@ -1,16 +1,18 @@
 import "@fontsource-variable/space-grotesk";
-import "@fontsource-variable/ibm-plex-mono";
+import "@fontsource/ibm-plex-mono/400.css";
+import "@fontsource/ibm-plex-mono/600.css";
 import "./styles.css";
 import { SAMPLE_REPOSITORY } from "./sample";
 import type { Filter, RepositoryPulse, WorktreePulse } from "./types";
-import { getDemoRepository, loadRepositoryPaths, resetDemo, saveRepositoryPath } from "./storage";
+import { clearDemo, getDemoRepository, loadRepositoryPaths, resetDemo, saveRepositoryPath } from "./storage";
 import { captureReturnedLicense, checkoutUrl, hasCachedLicense, storeLicense, verifyLicense } from "./license";
 import { detectPlatform, getDownload, releasesUrl, type Platform } from "./downloads";
 
 declare global { interface Window { __TAURI_INTERNALS__?: unknown } }
 
-const app = document.querySelector<HTMLDivElement>("#app");
-if (!app) throw new Error("App root is missing");
+const appRoot = document.querySelector<HTMLDivElement>("#app");
+if (!appRoot) throw new Error("App root is missing");
+const app = appRoot;
 
 const isNative = Boolean(window.__TAURI_INTERNALS__);
 let repository: RepositoryPulse | null = null;
@@ -23,6 +25,13 @@ const titles: Record<string, string> = {
   "/demo": "Demo — Worktree Agent Pulse",
   "/privacy": "Privacy — Worktree Agent Pulse",
   "/terms": "Terms — Worktree Agent Pulse",
+};
+
+const descriptions: Record<string, string> = {
+  "/": "See blocked coding agents and unsafe Git worktrees in one private desktop board.",
+  "/demo": "Try a private sample board with five realistic Git worktrees and agent states.",
+  "/privacy": "Learn what Worktree Agent Pulse reads, stores, and sends.",
+  "/terms": "Read the license and purchase terms for Worktree Agent Pulse.",
 };
 
 const e = (value: string): string => value.replace(/[&<>'"]/g, (character) => ({
@@ -46,7 +55,7 @@ function header(): string {
         <a href="/demo" data-route>Demo</a>
         <a href="/#how">How it works</a>
         <a href="/privacy" data-route>Privacy</a>
-      </nav>
+      </nav><div id="route-announcer" class="sr-only" aria-live="polite"></div>
     </header>`;
 }
 
@@ -93,7 +102,7 @@ function row(item: WorktreePulse, preview = false): string {
 }
 
 function miniDashboard(): string {
-  return `<div class="mini-window" aria-label="Example pulse board with five worktrees">
+  return `<div class="mini-window" role="region" aria-label="Example pulse board with five worktrees" tabindex="0">
     <div class="window-bar"><span></span><span></span><span></span><strong>NORTHSTAR / 5 WORKTREES</strong><em>SCANNED NOW</em></div>
     <div class="mini-body">
       <div class="board-head"><span>WORKTREE</span><span>AGENT</span><span>GIT STATE</span></div>
@@ -154,20 +163,22 @@ function landing(): string {
     <section class="price-section" aria-labelledby="price-title">
       <div class="section-index"><span>05</span><p>ONE-TIME LICENSE</p></div>
       <div class="section-content price-grid">
-        <div><h2 id="price-title">Use five worktrees free</h2><p>Pay once when you need more repositories or custom adapter paths.</p></div>
-        <div class="price"><strong>$19</strong><span>one-time purchase</span><a class="button primary" href="${checkoutUrl()}">Buy Pulse Pro</a><button class="text-button" id="restore-license" type="button">Restore a license</button></div>
+        <div><h2 id="price-title">Use five worktrees free</h2><p>Pay once to show every worktree and refresh every 10 seconds.</p></div>
+        <div class="price"><strong>$19</strong><span>one-time purchase</span>${isPro ? `<span class="license-active">Pulse Pro is active</span>` : `<a class="button primary" href="${checkoutUrl()}">Buy Pulse Pro</a>`}<button class="text-button" id="restore-license" type="button">Restore a license</button></div>
       </div>
     </section>
 
     <section class="download-section" aria-labelledby="download-title">
       <div class="section-index"><span>06</span><p>DESKTOP APP</p></div>
-      <div class="section-content"><h2 id="download-title">Install for ${platformName(platform)}</h2><p class="download-status" id="download-status">Checking the latest release…</p><div class="download-actions"><a class="button secondary disabled" id="download-button" aria-disabled="true">Checking downloads…</a><a href="${releasesUrl}" target="_blank" rel="noreferrer">View all releases <span class="sr-only">(opens in a new tab)</span></a></div><p class="signing-note">Early builds are unsigned. Your system may ask you to confirm the app.</p></div>
+      <div class="section-content"><h2 id="download-title">Install for ${platformName(platform)}</h2><p class="download-status" id="download-status">Downloads are published through GitHub Releases.</p><div class="download-actions"><button class="button secondary" id="download-button" type="button">Check download for ${platformName(platform)}</button><a href="${releasesUrl}" target="_blank" rel="noreferrer">View all releases <span class="sr-only">(opens in a new tab)</span></a></div><p class="signing-note">Early builds are unsigned. Your system may ask you to confirm the app.</p></div>
     </section>
   </main>${footer()}<div id="dialog-root"></div>`;
 }
 
 function dashboard(mode: "demo" | "native"): string {
-  const data = repository ?? SAMPLE_REPOSITORY;
+  const source = repository ?? SAMPLE_REPOSITORY;
+  const isLimited = mode === "native" && !isPro && source.worktrees.length > 5;
+  const data = isLimited ? { ...source, worktrees: source.worktrees.slice(0, 5) } : source;
   const visible = filterItems(data.worktrees);
   const blocked = data.worktrees.filter((item) => item.agentState === "blocked").length;
   const risky = data.worktrees.filter(needsAttention).length;
@@ -176,7 +187,7 @@ function dashboard(mode: "demo" | "native"): string {
   return `${banner}<div class="app-shell">
     <header class="app-header">
       <a class="wordmark" href="${mode === "demo" ? "/" : "#"}" ${mode === "demo" ? "data-route" : ""} aria-label="Worktree Agent Pulse home"><svg aria-hidden="true" viewBox="0 0 42 32"><path d="M3 6h10v8h8V6h10M13 14v12h18"/><rect x="1" y="4" width="5" height="5"/><rect x="29" y="23" width="5" height="5"/></svg><span>WORKTREE<br><strong>AGENT PULSE</strong></span></a>
-      <div class="app-actions"><button id="refresh" type="button">↻ <span>Refresh</span></button>${mode === "native" ? `<button id="add-repository" class="primary compact" type="button">+ Add repository</button>` : ""}</div>
+      <div class="app-actions"><button id="refresh" type="button">↻ <span>Refresh</span></button>${mode === "native" ? `<button class="app-license" type="button">License</button><button id="add-repository" class="primary compact" type="button">+ Add repository</button>` : ""}</div>
     </header>
     <main id="main" class="pulse-main">
       <section class="pulse-heading">
@@ -186,6 +197,7 @@ function dashboard(mode: "demo" | "native"): string {
       <div class="filter-bar" role="toolbar" aria-label="Filter worktrees">
         ${(["all", "needs-attention", "working", "clean"] as Filter[]).map((filter) => `<button type="button" data-filter="${filter}" aria-pressed="${activeFilter === filter}">${filter === "needs-attention" ? "Needs attention" : filter[0].toUpperCase() + filter.slice(1)} <span>${filterItemsFor(data.worktrees, filter).length}</span></button>`).join("")}
       </div>
+      ${isLimited ? `<aside class="limit-note"><strong>Five worktrees are shown.</strong><span>Pulse Pro shows every worktree and refreshes every 10 seconds.</span><button class="text-button app-license" type="button">Restore Pulse Pro</button></aside>` : ""}
       <section class="pulse-board" aria-labelledby="board-title"><h2 id="board-title" class="sr-only">Worktree status</h2>
         <div class="board-head"><span>WORKTREE</span><span>AGENT</span><span>GIT STATE</span></div>
         <div class="worktree-list">${visible.length ? visible.map((item) => row(item)).join("") : `<div class="empty-state"><strong>No worktrees match this filter.</strong><p>Choose another filter to see your worktrees.</p></div>`}</div>
@@ -193,7 +205,7 @@ function dashboard(mode: "demo" | "native"): string {
       ${selected ? detailPanel(selected, mode) : ""}
       <p class="scan-time" role="status">Last scan: just now · Git reads only</p>
     </main>
-  </div><div class="live-region sr-only" aria-live="polite"></div>`;
+  </div><div class="live-region sr-only" aria-live="polite"></div><div id="dialog-root"></div>`;
 }
 
 function filterItemsFor(items: WorktreePulse[], filter: Filter): WorktreePulse[] {
@@ -216,7 +228,7 @@ function detailPanel(item: WorktreePulse, mode: "demo" | "native"): string {
 function legalPage(kind: "privacy" | "terms"): string {
   const privacy = kind === "privacy";
   return `${header()}<main id="main" class="legal-page"><p class="eyebrow">POLICY / ${privacy ? "PRIVACY" : "TERMS"}</p><h1 tabindex="-1">${privacy ? "Your repository data stays local" : "Terms for using Pulse"}</h1><p class="lede">Effective August 28, 2026</p>
-    ${privacy ? `<section><h2>What the app reads</h2><p>The desktop app reads Git worktree metadata. It reads adapter files only after you add a repository. Adapter files should contain status, tool name, and time only.</p><h2>What stays on your device</h2><p>Repository paths, Git state, adapter state, and your license token stay in local app storage. Pulse does not include analytics or crash tracking.</p><h2>Network requests</h2><p>The site checks GitHub for release files. License purchase and verification use the Sociobot billing API. The desktop monitor needs no network connection.</p><h2>Delete your data</h2><p>Remove saved repositories in the app or clear the app’s local storage. Demo data uses separate session storage and disappears when the session ends.</p>` : `<section><h2>License</h2><p>The free edition monitors up to five worktrees. A $19 one-time Pulse Pro license adds unlimited repositories and custom adapter paths.</p><h2>Payment and refunds</h2><p>Sociobot and Dodo are the merchant of record. Their checkout handles payment and refunds. A refunded license stops verifying.</p><h2>Safe use</h2><p>Pulse reports Git metadata but cannot guarantee branch safety. Check your repository before deleting, rebasing, or merging work.</p><h2>Warranty</h2><p>The software is provided under the MIT License without warranty. You remain responsible for your repositories and agent processes.</p>`}
+    ${privacy ? `<section><h2>What the app reads</h2><p>The desktop app reads Git worktree metadata. It reads adapter files only after you add a repository. Adapter files should contain status, tool name, and time only.</p><h2>What stays on your device</h2><p>Repository paths, Git state, adapter state, and your license token stay in local app storage. Pulse does not include analytics or crash tracking.</p><h2>Network requests</h2><p>The site checks GitHub for release files. License purchase and verification use the Sociobot billing API. The desktop monitor needs no network connection.</p><h2>Delete your data</h2><p>Remove saved repositories in the app or clear the app’s local storage. Demo data uses separate session storage and disappears when the session ends.</p>` : `<section><h2>License</h2><p>The free edition shows up to five worktrees. A $19 one-time Pulse Pro license shows every worktree and adds 10-second refresh.</p><h2>Payment and refunds</h2><p>Sociobot and Dodo are the merchant of record. Their checkout handles payment and refunds. A refunded license stops verifying.</p><h2>Safe use</h2><p>Pulse reports Git metadata but cannot guarantee branch safety. Check your repository before deleting, rebasing, or merging work.</p><h2>Warranty</h2><p>The software is provided under the MIT License without warranty. You remain responsible for your repositories and agent processes.</p>`}
     <h2>Contact</h2><p>Email <a href="mailto:hello@sociobot.in">hello@sociobot.in</a> with questions.</p></section></main>${footer()}`;
 }
 
@@ -235,6 +247,7 @@ function headerWordmark(): string {
 function render(): void {
   captureReturnedLicense();
   const path = window.location.pathname.replace(/\/+$/, "") || "/";
+  if (!isNative && path !== "/demo") clearDemo();
   let html: string;
   if (isNative) html = repository ? dashboard("native") : nativeEmpty();
   else if (path === "/") html = landing();
@@ -243,11 +256,20 @@ function render(): void {
     html = dashboard("demo");
   } else if (path === "/privacy" || path === "/terms") html = legalPage(path.slice(1) as "privacy" | "terms");
   else html = notFound();
-  document.title = isNative ? "Worktree Agent Pulse" : (titles[path] ?? "Page not found — Worktree Agent Pulse");
+  const title = isNative ? "Worktree Agent Pulse" : (titles[path] ?? "Page not found — Worktree Agent Pulse");
+  const description = descriptions[path] ?? "Return to the Worktree Agent Pulse home page.";
+  document.title = title;
+  document.querySelector<HTMLMetaElement>('meta[name="description"]')?.setAttribute("content", description);
+  document.querySelector<HTMLMetaElement>('meta[property="og:title"]')?.setAttribute("content", title);
+  document.querySelector<HTMLMetaElement>('meta[property="og:description"]')?.setAttribute("content", description);
+  document.querySelector<HTMLMetaElement>('meta[name="twitter:title"]')?.setAttribute("content", title);
+  document.querySelector<HTMLMetaElement>('meta[name="twitter:description"]')?.setAttribute("content", description);
+  document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.setAttribute("href", `https://worktree-agent-pulse.sociobot.in${path}`);
   app.innerHTML = html;
+  const announcer = document.querySelector<HTMLElement>("#route-announcer, .live-region");
+  if (announcer) announcer.textContent = title;
   bindEvents();
   requestAnimationFrame(() => document.querySelector<HTMLElement>("h1")?.focus({ preventScroll: true }));
-  if (!isNative && path === "/") void bindDownload();
 }
 
 function bindEvents(): void {
@@ -271,6 +293,8 @@ function bindEvents(): void {
   document.querySelector("#load-sample")?.addEventListener("click", () => { repository = structuredClone(SAMPLE_REPOSITORY); render(); });
   document.querySelector("#open-terminal")?.addEventListener("click", () => void openTerminal());
   document.querySelector("#restore-license")?.addEventListener("click", showLicenseDialog);
+  document.querySelectorAll(".app-license").forEach((button) => button.addEventListener("click", showLicenseDialog));
+  document.querySelector("#download-button")?.addEventListener("click", () => void bindDownload());
 }
 
 function announce(message: string): void {
@@ -281,14 +305,16 @@ function announce(message: string): void {
 async function bindDownload(): Promise<void> {
   const platform = detectPlatform();
   const result = await getDownload(platform);
-  const button = document.querySelector<HTMLAnchorElement>("#download-button");
+  const button = document.querySelector<HTMLButtonElement>("#download-button");
   const status = document.querySelector<HTMLElement>("#download-status");
   if (!button || !status) return;
+  button.disabled = true;
+  button.textContent = "Checking releases…";
   if (result) {
-    button.href = result.url; button.textContent = `Download for ${platformName(platform)}`; button.classList.remove("disabled"); button.removeAttribute("aria-disabled");
+    button.outerHTML = `<a class="button primary" href="${e(result.url)}">Download for ${platformName(platform)}</a>`;
     status.textContent = `${result.version} is ready. Choose another build on the release page.`;
   } else {
-    button.href = releasesUrl; button.textContent = "View release status"; button.classList.remove("disabled"); button.removeAttribute("aria-disabled");
+    button.outerHTML = `<a class="button secondary" href="${releasesUrl}" target="_blank" rel="noreferrer">View release status <span class="sr-only">(opens in a new tab)</span></a>`;
     status.textContent = "Downloads are being published. The release page has current status.";
   }
 }
@@ -335,9 +361,20 @@ function showError(title: string, detail: string): void {
 
 function showLicenseDialog(): void {
   const root = document.querySelector("#dialog-root"); if (!root) return;
+  const returnFocus = document.activeElement as HTMLElement | null;
   root.innerHTML = `<div class="dialog-backdrop"><div class="license-dialog" role="dialog" aria-modal="true" aria-labelledby="license-title"><button id="close-license" class="close-detail" aria-label="Close license dialog">×</button><p class="eyebrow">PULSE PRO</p><h2 id="license-title">Restore your license</h2><label for="license-token">License token</label><input id="license-token" autocomplete="off" spellcheck="false"><p id="license-result" role="status">Paste the token from your purchase email.</p><button class="button primary" id="verify-license" type="button">Verify license</button></div></div>`;
   const input = document.querySelector<HTMLInputElement>("#license-token"); input?.focus();
-  const close = () => { root.innerHTML = ""; document.querySelector<HTMLElement>("#restore-license")?.focus(); };
+  const close = () => { root.innerHTML = ""; document.removeEventListener("keydown", handleKey); if (isNative) render(); else returnFocus?.focus(); };
+  const handleKey = (event: KeyboardEvent) => {
+    if (event.key === "Escape") { close(); return; }
+    if (event.key !== "Tab") return;
+    const focusable = [...root.querySelectorAll<HTMLElement>("button, input, a[href]")];
+    if (!focusable.length) return;
+    const first = focusable[0]; const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+  };
+  document.addEventListener("keydown", handleKey);
   document.querySelector("#close-license")?.addEventListener("click", close);
   document.querySelector(".dialog-backdrop")?.addEventListener("click", (event) => { if (event.target === event.currentTarget) close(); });
   document.querySelector("#verify-license")?.addEventListener("click", async () => {
@@ -362,4 +399,8 @@ if (isNative && loadRepositoryPaths()[0]) {
   import("@tauri-apps/api/core").then(({ invoke }) => invoke<RepositoryPulse>("scan_repository", { path: loadRepositoryPaths()[0] })).then((result) => { repository = result; render(); }).catch(() => render());
 } else render();
 
-void verifyLicense().then((valid) => { isPro = valid; });
+void verifyLicense().then((valid) => { if (valid !== isPro) { isPro = valid; if (!isNative && window.location.pathname === "/") render(); } });
+
+window.setInterval(() => {
+  if (isNative && isPro && repository && document.visibilityState === "visible") void refresh();
+}, 10_000);
