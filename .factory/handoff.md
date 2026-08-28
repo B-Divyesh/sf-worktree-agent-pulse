@@ -1,4 +1,4 @@
-# Worktree Agent Pulse v0.1.1 handoff
+# Worktree Agent Pulse v0.1.2 handoff
 
 ## What was built
 

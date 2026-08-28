@@ -1,12 +1,14 @@
 use serde::{Deserialize, Serialize};
 use std::{
     collections::hash_map::DefaultHasher,
-    env, fs,
+    fs,
     hash::{Hash, Hasher},
     path::{Path, PathBuf},
     process::{Command, Stdio},
     time::{SystemTime, UNIX_EPOCH},
 };
+#[cfg(target_os = "linux")]
+use std::env;
 use tauri::{
     menu::{Menu, MenuItem},
     tray::TrayIconBuilder,
