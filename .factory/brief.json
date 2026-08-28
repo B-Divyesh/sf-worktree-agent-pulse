@@ -1,0 +1,13 @@
+{
+  "slug": "worktree-agent-pulse",
+  "title": "Worktree Agent Pulse",
+  "territory": "devtools-data",
+  "user": "Solo developers and tiny teams running several CLI coding agents in Git worktrees who need a native overview of activity, blocked prompts and branch safety without switching terminal tabs.",
+  "smallest_useful_product": "Cross-platform tray/desktop app that discovers Git worktrees, tails opt-in agent status adapters, shows dirty/ahead/blocked state, and opens the exact terminal/worktree.",
+  "success_measure": "A five-worktree pilot finds a blocked agent or uncommitted branch from the board in under 10 seconds in 90% of prompted trials.",
+  "artifact_class": "desktop-app",
+  "monetization": "one-time",
+  "constraints": "Opt-in adapters only; avoid capture of prompt/output content; protect repository paths; use Git read operations unless user triggers an action.",
+  "state": "RESEARCHED",
+  "summary": "See blocked agents and unsafe Git worktrees in one local board."
+}
