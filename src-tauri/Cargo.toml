@@ -1,6 +1,6 @@
 [package]
 name = "worktree-agent-pulse"
-version = "0.1.4"
+version = "0.1.5"
 description = "A local pulse board for Git worktrees and coding agents"
 authors = ["Param Factory"]
 license = "MIT"

@@ -4,9 +4,9 @@ import "@fontsource/ibm-plex-mono/600.css";
 import "./styles.css";
 import { SAMPLE_REPOSITORY } from "./sample";
 import type { Filter, RepositoryPulse, WorktreePulse } from "./types";
-import { clearDemo, getDemoRepository, loadRepositoryPaths, resetDemo, saveRepositoryPath } from "./storage";
+import { clearDemo, getDemoRepository, loadRepositoryPaths, removeRepositoryPath, resetDemo, saveRepositoryPath } from "./storage";
 import { captureReturnedLicense, checkoutUrl, hasCachedLicense, storeLicense, verifyLicense } from "./license";
-import { detectPlatform, getDownload, releasesUrl, type Platform } from "./downloads";
+import { detectPlatform, getDownload, platformFromUserAgent, releasesUrl, type Platform } from "./downloads";
 import { FREE_WORKTREE_LIMIT, scheduleProRefresh, worktreesForLicense } from "./pro";
 
 declare global { interface Window { __TAURI_INTERNALS__?: unknown } }
@@ -20,6 +20,7 @@ let repository: RepositoryPulse | null = null;
 let activeFilter: Filter = "all";
 let selectedId: string | null = null;
 let isPro = hasCachedLicense();
+let isSampleProject = false;
 
 const titles: Record<string, string> = {
   "/": "Worktree Agent Pulse — See worktree risk",
@@ -64,7 +65,7 @@ function footer(): string {
   return `<footer class="site-footer">
     <p>See blocked agents and unsafe worktrees in one local board.</p>
     <nav aria-label="Footer"><a href="/privacy" data-route>Privacy</a><a href="/terms" data-route>Terms</a><span>Built by Param Factory</span></nav>
-    <p class="build-id">v0.1.4 · Generated artwork disclosed</p>
+    <p class="build-id">v0.1.5 · Generated artwork disclosed</p>
   </footer>`;
 }
 
@@ -113,11 +114,11 @@ function miniDashboard(): string {
 }
 
 function platformName(platform: Platform): string {
-  return platform === "mac" ? "macOS" : platform === "windows" ? "Windows" : "Linux";
+  return platform.startsWith("mac-") ? "macOS" : platform === "windows" ? "Windows" : "Linux";
 }
 
 function landing(): string {
-  const platform = detectPlatform();
+  const platform = platformFromUserAgent(`${navigator.userAgent} ${navigator.platform}`);
   return `${header()}<main id="main">
     <section class="hero">
       <div class="hero-copy">
@@ -184,11 +185,13 @@ function dashboard(mode: "demo" | "native"): string {
   const blocked = data.worktrees.filter((item) => item.agentState === "blocked").length;
   const risky = data.worktrees.filter(needsAttention).length;
   const selected = data.worktrees.find((item) => item.id === selectedId);
-  const banner = mode === "demo" ? `<aside class="demo-banner"><strong>Demo — sample data, nothing is saved</strong><div><button id="reset-demo" type="button">Reset demo</button><a href="/" data-route>Start for real</a></div></aside>` : "";
+  const banner = mode === "demo"
+    ? `<aside class="demo-banner"><strong>Demo — sample data, nothing is saved</strong><div><button id="reset-demo" type="button">Reset demo</button><a href="/" data-route>Start for real</a></div></aside>`
+    : isSampleProject ? `<aside class="demo-banner native-sample"><strong>Preview — sample worktrees are not folders on this device</strong><div><button id="leave-sample" type="button">Add a real repository</button></div></aside>` : "";
   return `${banner}<div class="app-shell">
     <header class="app-header">
       <a class="wordmark" href="${mode === "demo" ? "/" : "#"}" ${mode === "demo" ? "data-route" : ""} aria-label="Worktree Agent Pulse home"><svg aria-hidden="true" viewBox="0 0 42 32"><path d="M3 6h10v8h8V6h10M13 14v12h18"/><rect x="1" y="4" width="5" height="5"/><rect x="29" y="23" width="5" height="5"/></svg><span>WORKTREE<br><strong>AGENT PULSE</strong></span></a>
-      <div class="app-actions"><button id="refresh" type="button">↻ <span>Refresh</span></button>${mode === "native" ? `<button class="app-license" type="button">License</button><button id="add-repository" class="primary compact" type="button">+ Add repository</button>` : ""}</div>
+      <div class="app-actions"><button id="refresh" type="button">↻ <span>Refresh</span></button>${mode === "native" ? `<button class="app-license" type="button">License</button>${!isSampleProject ? `<button id="remove-repository" type="button">Remove repository</button>` : ""}<button id="add-repository" class="primary compact" type="button">+ Add repository</button>` : ""}</div>
     </header>
     <main id="main" class="pulse-main">
       <section class="pulse-heading">
@@ -221,15 +224,15 @@ function detailPanel(item: WorktreePulse, mode: "demo" | "native"): string {
     <button class="close-detail" id="close-detail" aria-label="Close worktree details">×</button>
     <p class="eyebrow">SELECTED WORKTREE</p><h2 id="detail-title">${e(item.name)}</h2>
     <dl><div><dt>Branch</dt><dd>${e(item.branch)}</dd></div><div><dt>Agent</dt><dd>${e(item.agent)} · ${statusLabel(item)}</dd></div><div><dt>Changes</dt><dd>${item.dirty} files</dd></div><div><dt>Remote</dt><dd>${item.ahead} ahead · ${item.behind} behind</dd></div><div><dt>Path</dt><dd>${e(item.path)}</dd></div></dl>
-    <button class="button primary" id="open-terminal" type="button">${mode === "demo" ? "Preview terminal action" : "Open this terminal"}</button>
-    <p class="action-note">This user action opens the folder. Pulse does not run Git writes.</p>
+    <button class="button primary" id="open-terminal" type="button">${mode === "demo" || isSampleProject ? "Preview terminal action" : "Open this terminal"}</button>
+    <p class="action-note">${mode === "demo" || isSampleProject ? "Preview only. No terminal will open for sample paths." : "This user action opens the folder. Pulse does not run Git writes."}</p>
   </aside>`;
 }
 
 function legalPage(kind: "privacy" | "terms"): string {
   const privacy = kind === "privacy";
   return `${header()}<main id="main" class="legal-page"><p class="eyebrow">POLICY / ${privacy ? "PRIVACY" : "TERMS"}</p><h1 tabindex="-1">${privacy ? "Your repository data stays local" : "Terms for using Pulse"}</h1><p class="lede">Effective August 28, 2026</p>
-    ${privacy ? `<section><h2>What the app reads</h2><p>The desktop app reads Git worktree metadata. It reads adapter files only after you add a repository. Only state, tool name, and time enter the board.</p><h2>What stays on your device</h2><p>Repository paths, Git state, adapter state, and your license token stay in local app storage. Pulse includes no analytics or crash tracking.</p><h2>Network requests</h2><p>The site checks GitHub only when you request a download. License purchase and verification use the Sociobot billing API. Git scanning uses local commands.</p><h2>Delete your data</h2><p>Remove saved repositories in the app or clear the app’s local storage. Demo data uses separate session storage and disappears when the session ends.</p>` : `<section><h2>License</h2><p>The free edition shows up to five worktrees. A $19 one-time Pulse Pro license shows every worktree and adds 10-second refresh.</p><h2>Payment and refunds</h2><p>Sociobot and Dodo handle checkout and refunds. A refunded license stops verifying.</p><h2>Safe use</h2><p>Pulse reports Git metadata but cannot guarantee branch safety. Check your repository before deleting, rebasing, or merging work.</p><h2>Warranty</h2><p>The software is provided under the MIT License without warranty. You remain responsible for your repositories and agent processes.</p>`}
+    ${privacy ? `<section><h2>What the app reads</h2><p>The desktop app reads Git worktree metadata. It reads adapter files only after you add a repository. Only state, tool name, and time enter the board.</p><h2>What stays on your device</h2><p>Repository paths, Git state, adapter state, and your license token stay in local app storage. Pulse includes no analytics or crash tracking.</p><h2>Network requests</h2><p>The site checks GitHub only when you request a download. License purchase and verification use the Sociobot billing API. Git scanning uses local commands.</p><h2>Delete your data</h2><p>Use Remove repository in the desktop app to forget a saved path. It does not change repository files. You can also clear the app’s local storage. Demo data uses separate session storage and disappears when the session ends.</p>` : `<section><h2>License</h2><p>The free edition shows up to five worktrees. A $19 one-time Pulse Pro license shows every worktree and adds 10-second refresh.</p><h2>Payment and refunds</h2><p>Sociobot and Dodo handle checkout and refunds. A refunded license stops verifying.</p><h2>Safe use</h2><p>Pulse reports Git metadata but cannot guarantee branch safety. Check your repository before deleting, rebasing, or merging work.</p><h2>Warranty</h2><p>The software is provided under the MIT License without warranty. You remain responsible for your repositories and agent processes.</p>`}
     <h2>Contact</h2><p>Email <a href="mailto:hello@sociobot.in">hello@sociobot.in</a> with questions.</p></section></main>${footer()}`;
 }
 
@@ -291,7 +294,9 @@ function bindEvents(): void {
   });
   document.querySelector("#refresh")?.addEventListener("click", () => void refresh());
   document.querySelector("#add-repository")?.addEventListener("click", () => void addRepository());
-  document.querySelector("#load-sample")?.addEventListener("click", () => { repository = structuredClone(SAMPLE_REPOSITORY); render(); });
+  document.querySelector("#load-sample")?.addEventListener("click", () => { isSampleProject = true; repository = structuredClone(SAMPLE_REPOSITORY); render(); });
+  document.querySelector("#leave-sample")?.addEventListener("click", () => { isSampleProject = false; repository = null; render(); });
+  document.querySelector("#remove-repository")?.addEventListener("click", () => void removeRepository());
   document.querySelector("#open-terminal")?.addEventListener("click", () => void openTerminal());
   document.querySelector("#restore-license")?.addEventListener("click", showLicenseDialog);
   document.querySelectorAll(".app-license").forEach((button) => button.addEventListener("click", showLicenseDialog));
@@ -304,7 +309,7 @@ function announce(message: string): void {
 }
 
 async function bindDownload(): Promise<void> {
-  const platform = detectPlatform();
+  const platform = await detectPlatform();
   const result = await getDownload(platform);
   const button = document.querySelector<HTMLButtonElement>("#download-button");
   const status = document.querySelector<HTMLElement>("#download-status");
@@ -328,10 +333,29 @@ async function addRepository(): Promise<void> {
     if (!path) return;
     const { invoke } = await import("@tauri-apps/api/core");
     repository = await invoke<RepositoryPulse>("scan_repository", { path });
+    isSampleProject = false;
     saveRepositoryPath(path); render();
   } catch (error) {
     showError("Pulse could not read that repository.", error instanceof Error ? error.message : "Choose a Git repository and try again.");
   }
+}
+
+async function removeRepository(): Promise<void> {
+  if (!isNative || !repository || isSampleProject) return;
+  const path = repository.root;
+  if (!window.confirm(`Forget ${repository.name}? This only removes the saved path from Pulse. Your repository files are unchanged.`)) return;
+  removeRepositoryPath(path);
+  repository = null;
+  selectedId = null;
+  const nextPath = loadRepositoryPaths()[0];
+  if (!nextPath) { render(); return; }
+  try {
+    const { invoke } = await import("@tauri-apps/api/core");
+    repository = await invoke<RepositoryPulse>("scan_repository", { path: nextPath });
+  } catch {
+    removeRepositoryPath(nextPath);
+  }
+  render();
 }
 
 async function refresh(): Promise<void> {
@@ -346,11 +370,11 @@ async function refresh(): Promise<void> {
 async function openTerminal(): Promise<void> {
   const item = repository?.worktrees.find((worktree) => worktree.id === selectedId);
   if (!item) return;
-  if (!isNative) { announce(`Demo action: terminal would open ${item.name}.`); return; }
+  if (!isNative || isSampleProject) { announce(`Preview action: terminal would open ${item.name}.`); return; }
   try {
     const { invoke } = await import("@tauri-apps/api/core");
     await invoke("open_terminal", { path: item.path }); announce(`Opened terminal for ${item.name}.`);
-  } catch (error) { showError("The terminal did not open.", error instanceof Error ? error.message : "Set your default terminal and try again."); }
+  } catch (error) { showError("The terminal did not open.", error instanceof Error ? error.message : "Pulse could not open the selected folder in a terminal."); }
 }
 
 function showError(title: string, detail: string): void {

@@ -127,7 +127,7 @@ button.worktree-row:hover, .worktree-row.selected { background: var(--ink-2); }
 
 .demo-banner { position: relative; z-index: 30; display: flex; min-height: 48px; align-items: center; justify-content: space-between; gap: 16px; padding: 7px clamp(16px, 4vw, 52px); background: var(--amber); color: #171000; font-size: .83rem; }
 .demo-banner div { display: flex; align-items: center; gap: 18px; }
-.demo-banner button { min-height: 36px; padding: 4px 10px; border: 1px solid #171000; background: transparent; color: #171000; cursor: pointer; }
+.demo-banner button { min-height: 44px; padding: 8px 12px; border: 1px solid #171000; background: transparent; color: #171000; cursor: pointer; }
 .demo-banner a { color: #171000; font-weight: 650; }
 .app-shell { min-height: 100vh; }
 .app-header { min-height: 72px; }
@@ -184,6 +184,7 @@ button.worktree-row:hover, .worktree-row.selected { background: var(--ink-2); }
   .app-header { padding: 12px 16px; }.app-actions button span { display: none; }.app-actions .compact { max-width: 130px; font-size: .75rem; }.pulse-main { padding: 32px 14px 70px; }.pulse-heading { margin-bottom: 30px; }.summary { gap: 12px; }.summary strong { font-size: 1.45rem; }
   .limit-note { align-items: flex-start; flex-direction: column; }.limit-note .text-button { margin-left: 0; }
   .pulse-board { border-inline: 0; }.pulse-board .board-head { display: none; }.pulse-board .worktree-row { --columns: 1fr auto; grid-template-columns: var(--columns); gap: 6px 12px; min-height: 118px; padding: 15px 34px; }.pulse-board .agent-state { align-items: end; }.pulse-board .git-metrics { grid-column: 1 / -1; }.pulse-board .row-arrow { right: 10px; }.pulse-board .rail { left: 10px; }
+  .pulse-board .branch, .pulse-board .agent-state, .pulse-board .agent-state small, .pulse-board .metric, .scan-time, .summary span { font-size: 17px; }
   .license-dialog { padding: 54px 22px 28px; }.legal-page, .not-found, .native-empty { padding: 64px 20px; }
 }
 

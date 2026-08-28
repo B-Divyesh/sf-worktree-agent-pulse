@@ -338,6 +338,57 @@ mod tests {
         assert!(parse_status(output).detached);
     }
 
+    #[test]
+    fn rejects_a_missing_worktree_before_terminal_lookup() {
+        let missing = std::env::temp_dir().join("pulse-missing-worktree-path");
+        let error =
+            spawn_terminal(&missing).expect_err("a missing worktree must not open a terminal");
+        assert_eq!(error, "The worktree folder no longer exists.");
+    }
+
+    /// @claim:exact-terminal-path
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn claim_exact_terminal_path_starts_the_configured_terminal_in_the_selected_worktree() {
+        use std::os::unix::fs::PermissionsExt;
+        let unique = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let fixture = std::env::temp_dir().join(format!("pulse-terminal-{unique}"));
+        let worktree = fixture.join("selected-worktree");
+        let output = fixture.join("opened-path.txt");
+        let terminal = fixture.join("terminal-probe.sh");
+        fs::create_dir_all(&worktree).unwrap();
+        fs::write(
+            &terminal,
+            format!("#!/bin/sh\npwd > '{}'\n", output.display()),
+        )
+        .unwrap();
+        fs::set_permissions(&terminal, fs::Permissions::from_mode(0o755)).unwrap();
+
+        let previous = env::var_os("TERMINAL");
+        env::set_var("TERMINAL", &terminal);
+        spawn_terminal(&worktree).expect("configured terminal should start");
+        for _ in 0..30 {
+            if output.exists() {
+                break;
+            }
+            std::thread::sleep(std::time::Duration::from_millis(20));
+        }
+        if let Some(value) = previous {
+            env::set_var("TERMINAL", value);
+        } else {
+            env::remove_var("TERMINAL");
+        }
+
+        assert_eq!(
+            fs::read_to_string(&output).unwrap().trim(),
+            worktree.canonicalize().unwrap().display().to_string()
+        );
+        fs::remove_dir_all(fixture).unwrap();
+    }
+
     /// @claim:metadata-only
     #[test]
     fn claim_metadata_only_ignores_content_and_preserves_git_state() {

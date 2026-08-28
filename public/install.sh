@@ -7,7 +7,12 @@ tmp_dir="$(mktemp -d)"
 trap 'rm -r "$tmp_dir"' EXIT INT TERM
 
 case "$(uname -s)" in
-  Darwin) pattern='\.dmg$' ;;
+  Darwin)
+    case "$(uname -m)" in
+      arm64|aarch64) pattern='(aarch64|arm64).*\.dmg$' ;;
+      x86_64|amd64) pattern='(x86_64|x64|amd64).*\.dmg$' ;;
+      *) echo "Unsupported macOS architecture: $(uname -m). Choose a DMG from https://github.com/$repo/releases" >&2; exit 1 ;;
+    esac ;;
   Linux) pattern='\.AppImage$' ;;
   *) echo "This installer supports macOS and Linux. Use install.ps1 on Windows." >&2; exit 1 ;;
 esac

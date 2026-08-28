@@ -39,7 +39,7 @@ npm ci
 npm run tauri dev
 ```
 
-The app stores repository paths in local WebView storage. Remove browser/app storage to clear them.
+The app stores repository paths in local WebView storage. Use **Remove repository** in the desktop app to forget a saved path without changing repository files. Clearing browser/app storage also removes saved paths.
 
 ## Agent adapter
 

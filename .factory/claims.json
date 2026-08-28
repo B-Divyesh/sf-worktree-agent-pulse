@@ -77,6 +77,41 @@
     "sandbox": "fresh browser context with a returned fixture license and mocked Sociobot response; assert URL stripping, namespaced local storage, and the single allowed verification request"
   },
   {
+    "id": "mac-download-architecture",
+    "claim": "The download button selects the matching Intel or Apple silicon macOS build.",
+    "where": "desktop download section",
+    "test": "npm run test:e2e -- --grep @claim:mac-download-architecture",
+    "sandbox": "mock GitHub release with both DMGs; use Intel and Apple silicon browser fixtures; assert each direct download URL"
+  },
+  {
+    "id": "exact-terminal-path",
+    "claim": "Selecting a real worktree opens a terminal in that exact worktree folder.",
+    "where": "landing How it works section and README",
+    "test": "cargo test --manifest-path src-tauri/Cargo.toml claim_exact_terminal_path -- --nocapture",
+    "sandbox": "temporary worktree and configured terminal probe; assert the probe receives the selected folder as its working directory"
+  },
+  {
+    "id": "installer-checksum",
+    "claim": "The one-line installers verify SHA-256 before opening or installing a release file.",
+    "where": "README install section",
+    "test": "npm run test:unit -- -t @claim:installer-checksum",
+    "sandbox": "read both shipped installer scripts; assert their checksum rejection check precedes every open, copy, or process-start operation"
+  },
+  {
+    "id": "native-no-tracking",
+    "claim": "The desktop app includes no analytics or crash tracking.",
+    "where": "privacy page",
+    "test": "npm run test:unit -- -t @claim:native-no-tracking",
+    "sandbox": "inspect native and WebView source for network clients and known analytics or crash-tracking endpoints"
+  },
+  {
+    "id": "repository-delete",
+    "claim": "Remove repository forgets a saved path without changing repository files.",
+    "where": "privacy page and desktop app",
+    "test": "npm run test:unit -- -t @claim:repository-delete",
+    "sandbox": "save two local paths, remove one through the storage action, and assert only that saved path is gone"
+  },
+  {
     "id": "checkout-live",
     "claim": "The $19 Pulse Pro purchase link opens a live Dodo checkout.",
     "where": "landing paid tier, terms, README",

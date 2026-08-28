@@ -36,20 +36,31 @@ test("footer attribution is text instead of a dead external link", async ({ page
   await expect(page.locator('footer a[href*="param.sociobot.in"]')).toHaveCount(0);
 });
 
-test("mobile landing controls have 44px touch targets", async ({ page }) => {
+test("mobile controls have 44px touch targets on every public route", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/");
+  for (const route of ["/", "/demo", "/privacy", "/terms", "/missing"]) {
+    await page.goto(route);
 
-  const controls = page.locator("a, button");
-  for (let index = 0; index < await controls.count(); index += 1) {
-    const control = controls.nth(index);
-    if (!await control.isVisible()) continue;
+    const controls = page.locator("a, button");
+    for (let index = 0; index < await controls.count(); index += 1) {
+      const control = controls.nth(index);
+      if (!await control.isVisible()) continue;
 
-    const label = (await control.innerText()).trim().replace(/\s+/g, " ") || await control.getAttribute("aria-label") || `control ${index}`;
-    const box = await control.boundingBox();
-    expect(box, `${label} has a measurable hit area`).not.toBeNull();
-    expect(box?.width, `${label} is at least 44px wide`).toBeGreaterThanOrEqual(44);
-    expect(box?.height, `${label} is at least 44px high`).toBeGreaterThanOrEqual(44);
+      const label = (await control.innerText()).trim().replace(/\s+/g, " ") || await control.getAttribute("aria-label") || `control ${index}`;
+      const box = await control.boundingBox();
+      expect(box, `${route}: ${label} has a measurable hit area`).not.toBeNull();
+      expect(box?.width, `${route}: ${label} is at least 44px wide`).toBeGreaterThanOrEqual(44);
+      expect(box?.height, `${route}: ${label} is at least 44px high`).toBeGreaterThanOrEqual(44);
+    }
+  }
+});
+
+test("mobile board keeps operational data at the 17px text floor", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/demo");
+  for (const selector of [".branch", ".metric", ".agent-state small", ".scan-time"]) {
+    const size = await page.locator(selector).first().evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize));
+    expect(size, `${selector} is legible on a phone`).toBeGreaterThanOrEqual(17);
   }
 });
 

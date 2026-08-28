@@ -52,7 +52,7 @@ test("@claim:offline-demo reloads the sample while offline", async ({ page, cont
   await page.goto("/demo");
   await page.evaluate(async () => { await navigator.serviceWorker.ready; if (!navigator.serviceWorker.controller) await new Promise<void>((resolve) => navigator.serviceWorker.addEventListener("controllerchange", () => resolve(), { once: true })); });
   const cachedUrls = await page.evaluate(async () => (await (await caches.open("worktree-agent-pulse-v3")).keys()).map((request) => request.url));
-  expect(cachedUrls.some((url) => url.includes("/assets/index-"))).toBe(true);
+  expect(cachedUrls.some((url) => url.includes("/assets/main-"))).toBe(true);
   await context.setOffline(true);
   await page.goto("/demo");
   await expect(page.locator(".pulse-board [data-worktree]")).toHaveCount(5);
@@ -96,6 +96,29 @@ test("@claim:site-network waits for a download request before contacting GitHub"
   await page.getByRole("button", { name: /Check download/ }).click();
   await expect(page.getByRole("link", { name: /Download for/ })).toHaveAttribute("href", /releases\/download\/v0\.1\.4/);
   expect(outsideRequests).toEqual(["https://api.github.com/repos/B-Divyesh/sf-worktree-agent-pulse/releases/latest"]);
+});
+
+test("@claim:mac-download-architecture selects the matching macOS artifact", async ({ browser }) => {
+  const release = {
+    html_url: "https://github.com/B-Divyesh/sf-worktree-agent-pulse/releases/tag/v0.1.5",
+    tag_name: "v0.1.5",
+    assets: [
+      { name: "Worktree.Agent.Pulse_0.1.5_aarch64.dmg", browser_download_url: "https://github.com/example/aarch64.dmg" },
+      { name: "Worktree.Agent.Pulse_0.1.5_x64.dmg", browser_download_url: "https://github.com/example/x64.dmg" },
+    ],
+  };
+  for (const [userAgent, expected] of [
+    ["Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/537.36 Chrome/122 Safari/537.36", "https://github.com/example/x64.dmg"],
+    ["Mozilla/5.0 (Macintosh; Arm Mac OS X 14_0) AppleWebKit/537.36 Chrome/122 Safari/537.36", "https://github.com/example/aarch64.dmg"],
+  ]) {
+    const context = await browser.newContext({ userAgent });
+    const page = await context.newPage();
+    await page.route("https://api.github.com/repos/B-Divyesh/sf-worktree-agent-pulse/releases/latest", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(release) }));
+    await page.goto("http://127.0.0.1:4173/");
+    await page.getByRole("button", { name: "Check download for macOS" }).click();
+    await expect(page.getByRole("link", { name: "Download for macOS" })).toHaveAttribute("href", expected);
+    await context.close();
+  }
 });
 
 test("@claim:license-local stores a returned license locally and sends it only to Sociobot", async ({ page }) => {

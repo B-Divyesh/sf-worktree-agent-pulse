@@ -1,72 +1,77 @@
-# Worktree Agent Pulse — independent verification 3 handoff
+# Worktree Agent Pulse — repair 3 handoff
 
-## Result: FAIL
+## Repair scope
 
-Candidate `e3a7ed67459f2631799d4dd7624d02b4f55042e4` at
-`https://worktree-agent-pulse.sociobot.in` is **not release-ready**.
+This repair resolves every release blocker in independent verification 3
+(`.factory/verification-3.md`) and also fixes its three medium-severity
+defects. The desktop and static-site version is now `0.1.5`.
 
-Fresh independent evidence is in `.factory/verification-3.md`. No product code
-was changed; this handoff and the verification report are the only intended
-repository changes.
+- The persistent demo Reset control is now 44px high. A 390×844 regression
+  measures every visible link and button on `/`, `/demo`, `/privacy`, `/terms`,
+  and the not-found route.
+- Release selection now distinguishes `mac-x64` and `mac-arm64`. The browser
+  uses high-entropy architecture data when available and a clear UA fallback;
+  `install.sh` uses `uname -m`. Tests select both DMGs and exercise an Intel
+  installer fixture.
+- The native board now has a confirmed **Remove repository** action. It removes
+  only the saved local path and never changes repository files. The privacy
+  page and README describe that actual control.
+- Every reported public promise now has a claims entry and tagged regression:
+  macOS architecture, exact terminal path, installer checksums, no native
+  tracking, and repository deletion.
+- Native sample data is now a labelled preview. Its fictional paths cannot
+  trigger a real terminal command; leaving the preview returns to the real
+  repository chooser. Native terminal errors preserve their actual cause.
+- Static Web Apps now serves the designed 404 document with HTTP 404, and
+  mobile board data uses a 17px operational-text floor.
 
-## Release blockers
+## Verification before publish
 
-1. Live `/demo` renders **Reset demo** at 98×36 CSS px on a 390×844 viewport,
-   below the required 44px touch height.
-2. An Intel macOS browser receives the ARM64 DMG. The site and `install.sh`
-   choose the first `.dmg` without architecture detection.
-3. `/privacy` says saved repositories can be removed in the app, but the app
-   has no removal control or storage-delete implementation.
-4. Public promises about exact terminal opening, installer checksum
-   verification, native no-telemetry behavior, and repository deletion are not
-   listed and tested in `.factory/claims.json`.
+- `npm ci` — passed; 0 vulnerabilities reported.
+- `npm test` — passed: 9 Vitest tests and 42 Playwright checks across desktop
+  Chromium and 390×844 mobile Chromium. This includes Axe serious/critical
+  checks, keyboard detail navigation, whole-site mobile target measurement,
+  offline demo reload, privacy network isolation, and Intel/Apple-silicon
+  release selection.
+- `npm run build` — passed. `dist/site` contains the static site and designed
+  `404.html`; main JS is 29.71 KB raw / 10.01 KB gzip and CSS is 23.45 KB raw /
+  5.77 KB gzip.
+- `cargo fmt --manifest-path src-tauri/Cargo.toml --check` — passed.
+- `cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings`
+  — passed.
+- `cargo test --manifest-path src-tauri/Cargo.toml` — passed: 6 Rust tests,
+  including the exact-terminal working-directory probe and metadata privacy
+  fixture.
+- `CI=true npm run tauri build -- --bundles deb` — passed. It produced
+  `src-tauri/target/release/bundle/deb/Worktree Agent Pulse_0.1.5_amd64.deb`
+  (1,955,952 bytes).
+- An extracted DEB has no missing linked libraries and stayed alive under Xvfb
+  for eight seconds (expected `timeout` exit 124).
+- `npm run test:checkout` — passed: live Sociobot checkout returned HTTP 303 to
+  an HTTPS Dodo checkout session.
+- `npm audit --omit=dev` — passed; 0 vulnerabilities.
 
-Additional defects: the native bundled sample offers a real terminal action
-for a fictional path and shows misleading recovery text; unknown URLs render a
-designed 404 with HTTP 200; essential mobile board text computes to
-10.4–13.28px.
+## Publish and production verification
 
-## What passed
+The repair commit, `v0.1.5` release tag, static deployment, and live checks are
+recorded below after the factory publish steps complete.
 
-- The cold first screen clearly explains what Pulse does, for whom, and what to
-  click first. The one-click sample action is visible at desktop and 390px.
-- All 12 declared claim commands pass after the documented Node and Linux Tauri
-  prerequisites are installed.
-- `npm test`: 4 unit and 38 browser tests passed.
-- `npm run build`: passed; `dist/site` produced.
-- Rust format, warning-as-error clippy, and all 4 Rust tests passed.
-- Exact Tauri DEB build passed; clean extracted candidate and release packages
-  launched under Xvfb with no missing libraries.
-- Live static assets match the candidate build byte-for-byte.
-- Normal live routes have no console/page errors or axe serious/critical
-  findings. Keyboard, focus, reduced motion, privacy isolation, service-worker
-  update, and offline demo reload passed.
-- Mobile Lighthouse: 94 performance, 100 accessibility, 100 best practices,
-  100 SEO; LCP 1,579ms and CLS 0.
-- License API rate limit: first 429 at request 31, `Retry-After: 3`.
-- Live Dodo checkout shows Pulse Pro at $19.00.
-- Release `v0.1.4` has macOS ARM64/x64, Windows x64, Linux AppImage/DEB,
-  checksums, and a valid manifest; a downloaded DEB matched `SHA256SUMS`.
-
-## Reproduce
+## Run and verify
 
 ```sh
 npm ci
 npm test
 npm run build
-cargo fmt --manifest-path src-tauri/Cargo.toml --check
-cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
 cargo test --manifest-path src-tauri/Cargo.toml
-npm run tauri build -- --bundles deb
-npm run test:checkout
+CI=true npm run tauri build -- --bundles deb
 ```
 
-Linux native checks require the packages declared by
-`.github/workflows/release.yml`.
+The web demo is `/demo`; its sample uses only the
+`demo:worktree-agent-pulse:*` session-storage namespace. The native first-run
+sample is a preview and cannot open a terminal.
 
-## Next steps
+## Known gaps / operator action
 
-Fix all four release blockers, add regressions for the missed demo and macOS
-paths, deploy the new static build, publish desktop artifacts from the repaired
-candidate, and request independent verification 4. Signing still needs the
-operator's Apple and Windows certificates.
+Desktop artifacts remain unsigned. Apple notarization and Windows
+Authenticode require the operator-provided `APPLE_CERTIFICATE` and
+`WINDOWS_CERT_PFX` secrets before signing can be added.

@@ -38,3 +38,10 @@ export function saveRepositoryPath(path: string): void {
   const next = Array.from(new Set([...loadRepositoryPaths(), path]));
   localStorage.setItem(REAL_KEY, JSON.stringify(next));
 }
+
+/** Removes only the selected repository path; it never touches repository files. */
+export function removeRepositoryPath(path: string): void {
+  const next = loadRepositoryPaths().filter((stored) => stored !== path);
+  if (next.length) localStorage.setItem(REAL_KEY, JSON.stringify(next));
+  else localStorage.removeItem(REAL_KEY);
+}
