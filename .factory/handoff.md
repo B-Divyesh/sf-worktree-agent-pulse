@@ -53,8 +53,34 @@ defects. The desktop and static-site version is now `0.1.5`.
 
 ## Publish and production verification
 
-The repair commit, `v0.1.5` release tag, static deployment, and live checks are
-recorded below after the factory publish steps complete.
+- Source repair commit: `b21ff9547349ef3264d8cdb99320dd503d51be63`.
+  The follow-up static 404 configuration commit is
+  `f4a0fdb20c9bf70a2f69bde6a5531af8b5c8aaf0`. Both are pushed to `main`.
+- `v0.1.5` is pushed and published. Its release has macOS ARM64/x64 DMGs,
+  Windows x64 NSIS EXE, Linux AppImage/DEB, `SHA256SUMS`, and valid
+  `latest.json`. The downloaded DEB SHA-256
+  `243ee1e771fee816745fc20672a10197ea01fbee1390e4ba9839fb25269d407c`
+  matches `SHA256SUMS`.
+- Deployed `dist/site` to production with `swa deploy dist/site --env production
+  --app-name sf-worktree-agent-pulse --resource-group sociobot --no-use-keychain`.
+  Live URL: `https://worktree-agent-pulse.sociobot.in`.
+- `/opt/fleet/lib/verify-url.sh` passed at the live URL: HTTP 200, 725ms load,
+  correct title and language, one h1/main, no missing alt text or unnamed
+  buttons, and no page or console errors. Evidence is in
+  `/work/.evidence/worktree-agent-pulse-repair-3`.
+- Live Playwright at 390×844 passed for `/`, `/demo`, `/privacy`, `/terms`, and
+  `/missing`: exactly one h1 and main each, all visible controls at least
+  44×44px, and zero Axe serious/critical issues. `/missing` now returns HTTP
+  404 while preserving the designed page.
+- Live keyboard detail open/close, demo-only storage/network isolation, and
+  offline demo reload passed. An Intel macOS browser received the x64 DMG and
+  an Apple-silicon fixture received the aarch64 DMG.
+- Live files match `dist/site` byte-for-byte. SHA-256: index
+  `979c0046cda2ebf41c81faafcccb36fea71cc8fc8f67e1045a3a5eb8cb58ee27`,
+  service worker
+  `637e62ab4ea478e5dd2e2e728fd46cad0e6f59fc085f5b10dff2e65a78f19ac4`,
+  main JS `4f39c2674aba7ea5b787e9787a254f9aa2c7f9f43ec714ae110196acadba9b99`,
+  and CSS `287a4427a9f243f01c4b59650d097b4381f870cac8918240270f470c654386e7`.
 
 ## Run and verify
 
