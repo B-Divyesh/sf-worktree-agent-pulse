@@ -40,6 +40,10 @@ The static deploy command is `npm run build`. Output lands in `dist/site`, with 
 - `cargo test --manifest-path src-tauri/Cargo.toml`: passed, 3 Rust tests.
 - `npm run tauri build -- --bundles deb`: passed; local Debian package was 1,953,676 bytes.
 - `npm run build`: passed.
+- GitHub release `v0.1.3`: all four platform jobs and checksum job passed.
+- Published assets: macOS arm64/x64 DMGs, Windows NSIS EXE, Linux AppImage and DEB.
+- Downloaded the Windows installer and verified it against the published `SHA256SUMS`.
+- `latest.json`: parsed successfully with a non-empty URL for every platform.
 - Initial JavaScript: 9.59 KB gzip. CSS: 5.72 KB gzip. Hero: 64 KB WebP.
 - Lighthouse mobile: Performance 99, Accessibility 100, Best Practices 100, SEO 100.
 - Lighthouse timings: LCP 1.8 s, total blocking time 0 ms, CLS 0.
@@ -48,8 +52,7 @@ The static deploy command is `npm run build`. Output lands in `dist/site`, with 
 
 ## Known gaps
 
-- The release workflow must finish before the landing download button resolves to a binary.
-- The app has no background notifications in v0.1.0; the tray is an open/quit surface.
+- The app has no background notifications in v0.1.3; the tray is an open/quit surface.
 - Terminal detection uses the system default on macOS and Windows, then common Linux terminals or `$TERMINAL`.
 
 ## Needs operator action
