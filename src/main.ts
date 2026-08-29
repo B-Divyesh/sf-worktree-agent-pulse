@@ -22,7 +22,8 @@ const isNative = Boolean(window.__TAURI_INTERNALS__);
 let repository: RepositoryPulse | null = null;
 let activeFilter: Filter = "all";
 let selectedId: string | null = null;
-let isPro = hasCachedLicense();
+let isPro = false;
+let licenseInitialized = false;
 let isSampleProject = false;
 let terminalPreviewMessage = "";
 
@@ -43,6 +44,31 @@ const descriptions: Record<string, string> = {
 const e = (value: string): string => value.replace(/[&<>'"]/g, (character) => ({
   "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;",
 }[character] ?? character));
+
+function locationState(): { path: string; demoMode: boolean } {
+  const path = window.location.pathname.replace(/\/+$/, "") || "/";
+  const demoQuery = new URLSearchParams(window.location.search).get("demo") === "1";
+  return { path, demoMode: path === "/demo" || (path === "/" && demoQuery) };
+}
+
+function discardReturnedDemoLicense(): void {
+  const url = new URL(window.location.href);
+  if (!url.searchParams.has("license")) return;
+  url.searchParams.delete("license");
+  history.replaceState(history.state, "", `${url.pathname}${url.search}${url.hash}`);
+}
+
+function initializeRealLicense(): void {
+  captureReturnedLicense();
+  if (licenseInitialized) return;
+  licenseInitialized = true;
+  isPro = hasCachedLicense();
+  void verifyLicense().then((valid) => {
+    if (valid === isPro) return;
+    isPro = valid;
+    if (!isNative && !locationState().demoMode && window.location.pathname === "/") render();
+  });
+}
 
 function navigate(path: string): void {
   history.pushState({}, "", path);
@@ -69,7 +95,7 @@ function footer(): string {
   return `<footer class="site-footer">
     <p>See blocked agents and worktrees that need attention in one local board.</p>
     <nav aria-label="Footer"><a href="/privacy" data-route>Privacy</a><a href="/terms" data-route>Terms</a><span>Built by Param Factory</span></nav>
-    <p class="build-id">v0.1.9 · Generated artwork disclosed</p>
+    <p class="build-id">v0.1.10 · Generated artwork disclosed</p>
   </footer>`;
 }
 
@@ -231,7 +257,7 @@ function dashboard(mode: "demo" | "native"): string {
       ${selected ? detailPanel(selected, mode) : ""}
       <p class="scan-time" role="status">${mode === "demo" || isSampleProject ? "Sample snapshot · no Git scan ran" : "Last scan: just now · Git reads only"}</p>
     </main>
-      ${mode === "demo" ? `<footer class="app-footer"><span>Demo sample data stays separate from real data.</span><nav aria-label="Demo footer"><a href="/privacy" data-route>Privacy</a><a href="/terms" data-route>Terms</a><span>Built by Param Factory · v0.1.9</span></nav></footer>` : ""}
+      ${mode === "demo" ? `<footer class="app-footer"><span>Demo sample data stays separate from real data.</span><nav aria-label="Demo footer"><a href="/privacy" data-route>Privacy</a><a href="/terms" data-route>Terms</a><span>Built by Param Factory · v0.1.10</span></nav></footer>` : ""}
   </div><div class="live-region sr-only" aria-live="polite"></div><div id="dialog-root"></div>`;
 }
 
@@ -272,10 +298,9 @@ function headerWordmark(): string {
 }
 
 function render(focusHeading = false): void {
-  captureReturnedLicense();
-  const path = window.location.pathname.replace(/\/+$/, "") || "/";
-  const demoQuery = new URLSearchParams(window.location.search).get("demo") === "1";
-  const demoMode = path === "/demo" || (path === "/" && demoQuery);
+  const { path, demoMode } = locationState();
+  if (demoMode) discardReturnedDemoLicense();
+  else initializeRealLicense();
   if (!isNative && !demoMode) clearDemo();
   let html: string;
   if (isNative) html = repository ? dashboard("native") : nativeEmpty();
@@ -488,8 +513,6 @@ if (isNative) void listenForBlockedAlertActions((worktreeId) => {
 if (isNative && loadRepositoryPaths()[0]) {
   import("@tauri-apps/api/core").then(({ invoke }) => invoke<RepositoryPulse>("scan_repository", { path: loadRepositoryPaths()[0] })).then((result) => { repository = result; render(); }).catch(() => render());
 } else render(true);
-
-void verifyLicense().then((valid) => { if (valid !== isPro) { isPro = valid; if (!isNative && window.location.pathname === "/") render(); } });
 
 scheduleProRefresh(
   () => void refresh(),

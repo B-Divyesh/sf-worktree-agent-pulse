@@ -5,6 +5,7 @@
 - Sample: the `northstar` repository with five worktrees across Codex, Claude Code, Gemini CLI, OpenCode, and Git-only states
 - States covered: blocked, working, idle, dirty, clean, ahead, and behind
 - Storage namespace: `demo:worktree-agent-pulse:*` in `sessionStorage`
+- Isolation: demo mode never reads, captures, verifies, or writes a real license; a `license` query is discarded in demo mode
 - Reset: choose **Reset demo** in the persistent amber banner
 - Exit: choose **Start for real**; demo data is not copied into real storage
 - Demo status label: **Sample snapshot · no Git scan ran**; the bundled data is never presented as a live scan
@@ -14,4 +15,4 @@ The desktop first-run **Load sample project** uses the same five-worktree
 preview. It is visibly labelled as a preview, never opens a terminal for the
 fictional sample paths, and **Add a real repository** leaves the preview.
 
-The demo does not call Git, the license API, or the GitHub release API. Automated tests intercept the whole demo flow and require every request to stay same-origin.
+The demo does not call Git, the license API, or the GitHub release API. Automated tests pre-seed real repository and license sentinels, cover both direct URLs, and require every demo request to stay same-origin.

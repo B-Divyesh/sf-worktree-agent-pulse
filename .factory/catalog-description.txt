@@ -1,1 +1,1 @@
-Monitor blocked coding agents and worktrees that need attention in one local desktop board.
+See blocked agents and worktrees needing attention in one local desktop board.

@@ -30,7 +30,7 @@ test("demo keeps legal navigation and sample semantics visible", async ({ page }
   await page.goto("/?demo=1");
   await expect(page.getByRole("link", { name: "Privacy" }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: "Terms" }).first()).toBeVisible();
-  await expect(page.getByText("Built by Param Factory · v0.1.9")).toBeVisible();
+  await expect(page.getByText("Built by Param Factory · v0.1.10")).toBeVisible();
   await expect(page.getByText("Sample snapshot · no Git scan ran")).toBeVisible();
   await expect(page).toHaveTitle("Demo — Worktree Agent Pulse");
 });
@@ -41,6 +41,41 @@ test("landing provides three captioned desktop walkthrough frames", async ({ pag
   await expect(walkthrough.locator("figure")).toHaveCount(3);
   await expect(walkthrough.locator("img")).toHaveCount(3);
   for (const image of await walkthrough.locator("img").all()) await expect(image).toHaveAttribute("alt", /.+/);
+});
+
+test("routes set exact metadata and browser history restores route focus", async ({ page }) => {
+  const routes = [
+    ["/", "Worktree Agent Pulse — Monitor worktrees", "https://worktree-agent-pulse.sociobot.in/"],
+    ["/demo", "Demo — Worktree Agent Pulse", "https://worktree-agent-pulse.sociobot.in/demo"],
+    ["/?demo=1", "Demo — Worktree Agent Pulse", "https://worktree-agent-pulse.sociobot.in/demo"],
+    ["/privacy", "Privacy — Worktree Agent Pulse", "https://worktree-agent-pulse.sociobot.in/privacy"],
+    ["/terms", "Terms — Worktree Agent Pulse", "https://worktree-agent-pulse.sociobot.in/terms"],
+    ["/missing", "Page not found — Worktree Agent Pulse", "https://worktree-agent-pulse.sociobot.in/missing"],
+  ];
+  for (const [route, title, canonical] of routes) {
+    await page.goto(route);
+    await expect(page).toHaveTitle(title);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", canonical);
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /.+/);
+    await expect(page.locator("h1")).toHaveCount(1);
+  }
+
+  await page.goto("/");
+  await page.evaluate(() => {
+    document.documentElement.style.scrollBehavior = "auto";
+    window.scrollTo(0, 1200);
+  });
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(500);
+  await page.getByRole("link", { name: "Privacy" }).first().click();
+  await expect(page).toHaveURL(/\/privacy$/);
+  await expect(page.getByRole("heading", { level: 1 })).toBeFocused();
+  await page.goBack();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole("heading", { level: 1 })).toBeFocused();
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(500);
+  await page.goForward();
+  await expect(page).toHaveURL(/\/privacy$/);
+  await expect(page.getByRole("heading", { level: 1 })).toBeFocused();
 });
 
 test("loads without browser console errors", async ({ page }) => {

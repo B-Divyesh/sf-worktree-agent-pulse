@@ -25,7 +25,7 @@
     "claim": "Demo repository data is not sent off the device or saved as real data.",
     "where": "demo banner and privacy page",
     "test": "npm run test:e2e -- --grep @claim:demo-private",
-    "sandbox": "fresh browser context; intercept the full demo flow; assert same-origin requests and demo-only session storage"
+    "sandbox": "fresh browser contexts for /demo and /?demo=1&license=fixture; pre-seed byte sentinels for real repository, license, verdict, and session data; fail Sociobot requests; exercise preview, reset, and exit; assert no real bytes change and only demo-prefixed session storage changes while demo is active"
   },
   {
     "id": "offline-demo",
@@ -122,7 +122,7 @@
     "id": "release-source-provenance",
     "claim": "Every advertised desktop download is checksummed and built from the published release source commit.",
     "where": "desktop download section and release metadata",
-    "test": "npm run test:release-provenance -- v0.1.9",
+    "test": "npm run test:release-provenance -- v0.1.10",
     "sandbox": "public GitHub release API; assert the release target and latest.json source_commit match, then download and hash both macOS DMGs, Windows installer, AppImage, and Debian package"
   },
   {

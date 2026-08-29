@@ -3,7 +3,7 @@ import { chromium } from "playwright";
 import { mkdir, writeFile } from "node:fs/promises";
 
 const origin = process.argv[2] ?? "https://worktree-agent-pulse.sociobot.in";
-const evidence = ".factory/polish-2-evidence";
+const evidence = ".factory/polish-3-evidence";
 const report = { checkedAt: new Date().toISOString(), origin, checks: [], consoleErrors: [] };
 const pass = (name, detail = "pass") => report.checks.push({ name, detail });
 const assert = (value, message) => { if (!value) throw new Error(message); };
@@ -44,12 +44,40 @@ try {
   await page.screenshot({ path: `${evidence}/live-landing-mobile.png`, fullPage: true });
   pass("mobile first screen", "all required first-screen elements visible at 390x844");
 
-  await page.evaluate(() => localStorage.setItem("pulse:repositories", '["/real/sentinel"]'));
-  const requests = [];
-  page.on("request", (request) => requests.push(request.url()));
+  const realLocal = {
+    "pulse:repositories": '["/real/private/repository"]',
+    "sb_license:worktree-agent-pulse": "live-real-license-byte-sentinel",
+    "sb_license:worktree-agent-pulse:verdict": '{"sentinel":"live-real-verdict-bytes"}',
+    "real:unrelated": "live-unrelated-bytes",
+  };
+  const realSession = { "real:session:sentinel": "live-session-bytes" };
+  await page.addInitScript((keys) => {
+    const realKeys = new Set(keys);
+    const originalGetItem = Storage.prototype.getItem;
+    window.__demoRealStorageReads = [];
+    Storage.prototype.getItem = function getItem(key) {
+      if (this === localStorage && realKeys.has(key)) window.__demoRealStorageReads.push(key);
+      return originalGetItem.call(this, key);
+    };
+  }, Object.keys(realLocal));
+  await page.evaluate(({ local, session }) => {
+    localStorage.clear();
+    sessionStorage.clear();
+    for (const [key, value] of Object.entries(local)) localStorage.setItem(key, value);
+    for (const [key, value] of Object.entries(session)) sessionStorage.setItem(key, value);
+  }, { local: realLocal, session: realSession });
+  const demoRequests = [];
+  let demoActive = true;
+  page.on("request", (request) => {
+    if (demoActive && new URL(request.url()).origin !== origin) demoRequests.push(request.url());
+  });
+  await page.route("https://api.sociobot.in/**", (route) => route.abort("failed"));
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto(origin + "/?demo=1", { waitUntil: "domcontentloaded" });
-  await page.evaluate(() => localStorage.setItem("sb_license:worktree-agent-pulse", "real-token"));
+  await page.goto(origin + "/demo", { waitUntil: "domcontentloaded" });
+  assert(demoRequests.length === 0, `direct /demo sent a cross-origin request: ${demoRequests.join(", ")}`);
+  assert((await page.evaluate(() => window.__demoRealStorageReads)).length === 0, "direct /demo read real local storage");
+  await page.goto(origin + "/?demo=1&license=returned-demo-token", { waitUntil: "domcontentloaded" });
+  assert(!new URL(page.url()).searchParams.has("license"), "demo return license was not discarded from the URL");
   assert(await page.locator("[data-worktree]").count() === 5, "demo does not have five worktrees");
   assert(await page.getByText("Demo — sample data, nothing is saved", { exact: false }).count() > 0, "demo banner missing");
   assert(await page.locator("#reset-demo").count() === 1 && await page.getByRole("link", { name: "Start for real" }).count() === 1, "demo controls missing");
@@ -72,18 +100,33 @@ try {
 
   await page.locator("#reset-demo").click();
   const stores = await page.evaluate(() => ({
-    repositories: localStorage.getItem("pulse:repositories"),
-    license: localStorage.getItem("sb_license:worktree-agent-pulse"),
-    demo: sessionStorage.getItem("demo:worktree-agent-pulse:repository"),
+    local: Object.fromEntries(Object.entries(localStorage)),
+    session: Object.fromEntries(Object.entries(sessionStorage)),
+    realReads: window.__demoRealStorageReads,
   }));
-  assert(stores.repositories === '["/real/sentinel"]' && stores.license === "real-token" && Boolean(stores.demo), "demo storage is not isolated");
-  assert(requests.every((url) => new URL(url).origin === origin), "demo made a cross-origin request");
+  for (const [key, value] of Object.entries(realLocal)) assert(stores.local[key] === value, `demo changed real local storage: ${key}`);
+  assert(Object.keys(stores.local).length === Object.keys(realLocal).length, "demo added real local-storage keys");
+  assert(stores.session["real:session:sentinel"] === realSession["real:session:sentinel"], "demo changed real session data");
+  assert(Boolean(stores.session["demo:worktree-agent-pulse:repository"]), "demo session record is missing");
+  assert(Object.keys(stores.session).length === 2, "demo wrote outside its session namespace");
+  assert(stores.realReads.length === 0, `demo read real local storage: ${stores.realReads.join(", ")}`);
+  assert(demoRequests.length === 0, `demo made a cross-origin request: ${demoRequests.join(", ")}`);
   await page.evaluate(() => navigator.serviceWorker.ready);
   await context.setOffline(true);
   await page.reload({ waitUntil: "domcontentloaded" });
   assert(await page.locator("[data-worktree]").count() === 5, "demo did not reload offline");
   await context.setOffline(false);
-  pass("isolated one-click demo", "five rows, banner/reset/start, same-origin requests, separate session storage, offline reload");
+  demoActive = false;
+  await page.getByRole("link", { name: "Start for real" }).click();
+  await page.getByRole("heading", { name: "See blocked agents and worktrees that need attention" }).waitFor();
+  const afterExit = await page.evaluate(() => ({
+    local: Object.fromEntries(Object.entries(localStorage)),
+    session: Object.fromEntries(Object.entries(sessionStorage)),
+  }));
+  for (const [key, value] of Object.entries(realLocal)) assert(afterExit.local[key] === value, `demo exit changed real local storage: ${key}`);
+  assert(Object.keys(afterExit.local).length === Object.keys(realLocal).length, "demo exit added real local-storage keys");
+  assert(JSON.stringify(afterExit.session) === JSON.stringify(realSession), "demo exit did not discard only demo session data");
+  pass("isolated one-click demo", "both direct URLs preserve real repository/license/verdict bytes, make no cross-origin demo request, reset cleanly, exit cleanly, and reload offline");
   pass("drawer keyboard and terminal feedback", "heading focus, visible full path, Escape restores wt-checkout");
 
   await page.goto(origin + "/privacy", { waitUntil: "domcontentloaded" });
@@ -100,6 +143,7 @@ try {
   pass("privacy at 200%", "no horizontal clipping at 390 CSS px");
 
   await page.setViewportSize({ width: 1440, height: 900 });
+  await page.evaluate(() => localStorage.clear());
   await page.goto(origin + "/", { waitUntil: "domcontentloaded" });
   let verificationRequests = 0;
   page.on("request", (request) => { if (request.url().includes("/verify?license=")) verificationRequests += 1; });

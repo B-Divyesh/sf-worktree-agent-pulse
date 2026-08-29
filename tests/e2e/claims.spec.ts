@@ -43,18 +43,75 @@ test("@claim:first-screen-demo keeps the primary action in the initial viewport"
   }
 });
 
-test("@claim:demo-private sends no repository data away", async ({ page }) => {
-  const outsideRequests: string[] = [];
-  page.on("request", (request) => {
-    if (new URL(request.url()).origin !== "http://127.0.0.1:4173") outsideRequests.push(request.url());
-  });
-  await page.goto("/demo");
-  await page.locator('[data-worktree="wt-checkout"]').click();
-  await page.getByRole("button", { name: "Preview terminal action" }).click();
-  const storage = await page.evaluate(() => ({ local: Object.keys(localStorage), session: Object.keys(sessionStorage) }));
-  expect(storage.local.filter((key) => key.includes("repositories"))).toEqual([]);
-  expect(storage.session).toContain("demo:worktree-agent-pulse:repository");
-  expect(outsideRequests).toEqual([]);
+test("@claim:demo-private isolates both direct demo paths from real data", async ({ browser }) => {
+  const realLocalStorage = {
+    "pulse:repositories": '["/real/private/repository"]',
+    "sb_license:worktree-agent-pulse": "real-license-byte-sentinel",
+    "sb_license:worktree-agent-pulse:verdict": '{"sentinel":"real-verdict-bytes"}',
+    "real:unrelated": "leave-these-bytes-alone",
+  };
+  const realSessionStorage = { "real:session:sentinel": "real-session-bytes" };
+
+  for (const entry of ["/demo", "/?demo=1&license=returned-demo-token"]) {
+    const context = await browser.newContext();
+    await context.addInitScript(({ local, session }) => {
+      const realKeys = new Set(Object.keys(local));
+      const originalGetItem = Storage.prototype.getItem;
+      (window as unknown as { __demoRealStorageReads: string[] }).__demoRealStorageReads = [];
+      Storage.prototype.getItem = function getItem(key: string): string | null {
+        if (this === localStorage && realKeys.has(key)) {
+          (window as unknown as { __demoRealStorageReads: string[] }).__demoRealStorageReads.push(key);
+        }
+        return originalGetItem.call(this, key);
+      };
+      for (const [key, value] of Object.entries(local)) localStorage.setItem(key, value);
+      for (const [key, value] of Object.entries(session)) sessionStorage.setItem(key, value);
+    }, { local: realLocalStorage, session: realSessionStorage });
+    const page = await context.newPage();
+    const demoRequests: string[] = [];
+    const realModeRequests: string[] = [];
+    let phase: "demo" | "real" = "demo";
+    await page.route("https://api.sociobot.in/**", async (route) => {
+      (phase === "demo" ? demoRequests : realModeRequests).push(route.request().url());
+      await route.abort("failed");
+    });
+
+    await page.goto(`http://127.0.0.1:4173${entry}`);
+    await expect(page).toHaveTitle("Demo — Worktree Agent Pulse");
+    await expect(page.getByText("Demo — sample data, nothing is saved")).toBeVisible();
+    await expect(page).not.toHaveURL(/license=/);
+    await page.locator('[data-worktree="wt-checkout"]').click();
+    await page.getByRole("button", { name: "Preview terminal action" }).click();
+    await page.getByRole("button", { name: "Reset demo" }).click();
+
+    const duringDemo = await page.evaluate(() => ({
+      local: Object.fromEntries(Object.entries(localStorage)),
+      session: Object.fromEntries(Object.entries(sessionStorage)),
+      realReads: (window as unknown as { __demoRealStorageReads: string[] }).__demoRealStorageReads,
+    }));
+    expect(duringDemo.local).toEqual(realLocalStorage);
+    expect(duringDemo.session["real:session:sentinel"]).toBe(realSessionStorage["real:session:sentinel"]);
+    expect(Object.keys(duringDemo.session).sort()).toEqual([
+      "demo:worktree-agent-pulse:repository",
+      "real:session:sentinel",
+    ]);
+    expect(duringDemo.realReads).toEqual([]);
+    expect(demoRequests).toEqual([]);
+
+    phase = "real";
+    await page.getByRole("link", { name: "Start for real" }).click();
+    await expect(page).toHaveURL("http://127.0.0.1:4173/");
+    await expect(page.getByRole("heading", { name: "See blocked agents and worktrees that need attention" })).toBeVisible();
+    const afterExit = await page.evaluate(() => ({
+      local: Object.fromEntries(Object.entries(localStorage)),
+      session: Object.fromEntries(Object.entries(sessionStorage)),
+    }));
+    expect(afterExit.local).toEqual(realLocalStorage);
+    expect(afterExit.session).toEqual(realSessionStorage);
+    expect(demoRequests).toEqual([]);
+    expect(realModeRequests.length).toBeLessThanOrEqual(1);
+    await context.close();
+  }
 });
 
 test("@claim:offline-demo reloads the sample while offline", async ({ page, context }) => {

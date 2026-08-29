@@ -1,6 +1,6 @@
 # Landing-page copy audit
 
-Audited August 29, 2026. Labels, actions, headings, captions, and sentences that carry meaning are included. No item exceeds 22 words. No banned word appears.
+Re-audited August 29, 2026 for polish round 3. Labels, actions, headings, captions, and sentences that carry meaning are included. No item exceeds 22 words. No banned word appears.
 
 | Copy | Words | Result |
 | --- | ---: | --- |
@@ -49,7 +49,12 @@ Audited August 29, 2026. Labels, actions, headings, captions, and sentences that
 | View all releases | 3 | Pass |
 | See blocked agents and worktrees that need attention in one local board. | 11 | Pass |
 | Built by Param Factory | 4 | Pass |
+| v0.1.10 | 1 | Pass |
 | Generated artwork disclosed | 3 | Pass |
+
+## Catalog description
+
+“See blocked agents and worktrees needing attention in one local desktop board.” is 12 words and 78 characters. It starts with a verb and contains no banned word.
 
 ## Terminology
 
