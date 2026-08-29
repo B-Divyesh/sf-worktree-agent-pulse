@@ -1,0 +1,330 @@
+{
+  "at": "2026-08-29T21:07:20.440Z",
+  "routes": [
+    {
+      "viewport": "desktop",
+      "route": "/",
+      "status": 200,
+      "errors": [],
+      "serious": [],
+      "semantics": {
+        "title": "Worktree Agent Pulse — Monitor worktrees",
+        "lang": "en",
+        "h1": 1,
+        "main": 1,
+        "missingAlt": 0,
+        "scrollWidth": 1440,
+        "innerWidth": 1440
+      }
+    },
+    {
+      "viewport": "desktop",
+      "route": "/demo",
+      "status": 200,
+      "errors": [],
+      "serious": [],
+      "semantics": {
+        "title": "Demo — Worktree Agent Pulse",
+        "lang": "en",
+        "h1": 1,
+        "main": 1,
+        "missingAlt": 0,
+        "scrollWidth": 1440,
+        "innerWidth": 1440
+      }
+    },
+    {
+      "viewport": "desktop",
+      "route": "/privacy",
+      "status": 200,
+      "errors": [],
+      "serious": [],
+      "semantics": {
+        "title": "Privacy — Worktree Agent Pulse",
+        "lang": "en",
+        "h1": 1,
+        "main": 1,
+        "missingAlt": 0,
+        "scrollWidth": 1440,
+        "innerWidth": 1440
+      }
+    },
+    {
+      "viewport": "desktop",
+      "route": "/terms",
+      "status": 200,
+      "errors": [],
+      "serious": [],
+      "semantics": {
+        "title": "Terms — Worktree Agent Pulse",
+        "lang": "en",
+        "h1": 1,
+        "main": 1,
+        "missingAlt": 0,
+        "scrollWidth": 1440,
+        "innerWidth": 1440
+      }
+    },
+    {
+      "viewport": "desktop",
+      "route": "/missing-qa8",
+      "status": 404,
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "serious": [],
+      "semantics": {
+        "title": "Page not found — Worktree Agent Pulse",
+        "lang": "en",
+        "h1": 1,
+        "main": 1,
+        "missingAlt": 0,
+        "scrollWidth": 1440,
+        "innerWidth": 1440
+      }
+    },
+    {
+      "viewport": "mobile",
+      "route": "/",
+      "status": 200,
+      "errors": [],
+      "serious": [],
+      "semantics": {
+        "title": "Worktree Agent Pulse — Monitor worktrees",
+        "lang": "en",
+        "h1": 1,
+        "main": 1,
+        "missingAlt": 0,
+        "scrollWidth": 390,
+        "innerWidth": 390
+      }
+    },
+    {
+      "viewport": "mobile",
+      "route": "/demo",
+      "status": 200,
+      "errors": [],
+      "serious": [],
+      "semantics": {
+        "title": "Demo — Worktree Agent Pulse",
+        "lang": "en",
+        "h1": 1,
+        "main": 1,
+        "missingAlt": 0,
+        "scrollWidth": 390,
+        "innerWidth": 390
+      }
+    },
+    {
+      "viewport": "mobile",
+      "route": "/privacy",
+      "status": 200,
+      "errors": [],
+      "serious": [],
+      "semantics": {
+        "title": "Privacy — Worktree Agent Pulse",
+        "lang": "en",
+        "h1": 1,
+        "main": 1,
+        "missingAlt": 0,
+        "scrollWidth": 390,
+        "innerWidth": 390
+      }
+    },
+    {
+      "viewport": "mobile",
+      "route": "/terms",
+      "status": 200,
+      "errors": [],
+      "serious": [],
+      "semantics": {
+        "title": "Terms — Worktree Agent Pulse",
+        "lang": "en",
+        "h1": 1,
+        "main": 1,
+        "missingAlt": 0,
+        "scrollWidth": 390,
+        "innerWidth": 390
+      }
+    },
+    {
+      "viewport": "mobile",
+      "route": "/missing-qa8",
+      "status": 404,
+      "errors": [
+        "Failed to load resource: the server responded with a status of 404 ()"
+      ],
+      "serious": [],
+      "semantics": {
+        "title": "Page not found — Worktree Agent Pulse",
+        "lang": "en",
+        "h1": 1,
+        "main": 1,
+        "missingAlt": 0,
+        "scrollWidth": 390,
+        "innerWidth": 390
+      }
+    }
+  ],
+  "flows": {
+    "demo": {
+      "skip": {
+        "text": "Try it with sample data",
+        "outline": "solid",
+        "width": "3px",
+        "color": "rgb(124, 247, 196)",
+        "top": 617.640625,
+        "bottom": 665.640625
+      },
+      "first": {
+        "cta": {
+          "x": 72,
+          "y": 617.640625,
+          "width": 230,
+          "height": 48
+        },
+        "explanation": {
+          "x": 320,
+          "y": 623.296875,
+          "width": 190,
+          "height": 36.6875
+        },
+        "h1": "See blocked agents and worktrees that need attention",
+        "lede": "For developers running several CLI agents who need one view of worktree activity and Git state."
+      },
+      "names": [
+        "checkout-retry",
+        "invoice-export",
+        "northstar",
+        "search-index",
+        "auth-cleanup"
+      ],
+      "counts": {
+        "all": 5,
+        "attention": 4,
+        "working": 1,
+        "clean": 1
+      },
+      "drawerFocus": "detail-title",
+      "note": "Installed Pulse would open /Users/mira/Code/northstar-checkout-retry in your terminal.",
+      "restored": "wt-checkout",
+      "afterReset": 5,
+      "storage": {
+        "local": [],
+        "session": [
+          "demo:worktree-agent-pulse:repository"
+        ]
+      },
+      "errors": [],
+      "requests": [
+        "https://worktree-agent-pulse.sociobot.in/",
+        "https://worktree-agent-pulse.sociobot.in/assets/main-CLzlZuAS.js",
+        "https://worktree-agent-pulse.sociobot.in/assets/main-Dq_q5cFL.css",
+        "https://worktree-agent-pulse.sociobot.in/assets/hero-lattice.webp",
+        "https://worktree-agent-pulse.sociobot.in/assets/space-grotesk-latin-wght-normal-BhU9QXUp.woff2",
+        "https://worktree-agent-pulse.sociobot.in/assets/ibm-plex-mono-latin-400-normal-DMJ8VG8y.woff2",
+        "https://worktree-agent-pulse.sociobot.in/assets/ibm-plex-mono-latin-600-normal-BgSNZQsw.woff2",
+        "https://worktree-agent-pulse.sociobot.in/assets/walkthrough-add-repository.png",
+        "https://worktree-agent-pulse.sociobot.in/assets/walkthrough-inspect.png",
+        "https://worktree-agent-pulse.sociobot.in/assets/walkthrough-terminal.png"
+      ]
+    },
+    "headers": {
+      "cache-control": "public, must-revalidate, max-age=30",
+      "content-encoding": "br",
+      "content-security-policy": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://api.github.com https://api.sociobot.in; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self' https://api.sociobot.in; frame-ancestors 'none'",
+      "content-type": "text/html",
+      "date": "Sat, 29 Aug 2026 21:07:36 GMT",
+      "etag": "\"74399503\"",
+      "last-modified": "Sat, 29 Aug 2026 20:27:05 GMT",
+      "permissions-policy": "camera=(), microphone=(), geolocation=()",
+      "referrer-policy": "strict-origin-when-cross-origin",
+      "strict-transport-security": "max-age=10886400; includeSubDomains; preload",
+      "vary": "Accept-Encoding",
+      "x-content-type-options": "nosniff",
+      "x-dns-prefetch-control": "off",
+      "x-xss-protection": "1; mode=block"
+    },
+    "mobile": {
+      "cta": {
+        "x": 20,
+        "y": 580.78125,
+        "width": 350,
+        "height": 48
+      },
+      "explanation": {
+        "x": 20,
+        "y": 646.78125,
+        "width": 350,
+        "height": 18.34375
+      },
+      "reflow": {
+        "document": 390,
+        "viewport": 390
+      },
+      "clipped": []
+    },
+    "reducedMotion": {
+      "maxSeconds": 0.00001,
+      "overOneMs": []
+    },
+    "download": {
+      "external": [
+        "https://api.github.com/repos/B-Divyesh/sf-worktree-agent-pulse/releases/latest"
+      ],
+      "errors": [],
+      "link": "https://github.com/B-Divyesh/sf-worktree-agent-pulse/releases/download/v0.1.9/Worktree.Agent.Pulse_0.1.9_amd64.AppImage"
+    },
+    "invalidInput": {
+      "focused": true,
+      "ariaInvalid": "true",
+      "message": true,
+      "requests": []
+    },
+    "offline": {
+      "scope": "https://worktree-agent-pulse.sociobot.in/",
+      "state": "activated",
+      "controller": true,
+      "caches": [
+        "worktree-agent-pulse-v3"
+      ],
+      "rows": 5,
+      "error": null
+    },
+    "focus": {
+      "initial": {
+        "tag": "H1",
+        "id": "",
+        "text": "See blocked agents and worktrees that need attention"
+      },
+      "afterTab": {
+        "tag": "A",
+        "text": "Try it with sample data",
+        "outline": "solid",
+        "width": "3px",
+        "color": "rgb(124, 247, 196)",
+        "box": {
+          "x": 72,
+          "y": 617.640625,
+          "width": 230,
+          "height": 48
+        }
+      },
+      "skipFocus": {
+        "visible": true,
+        "outline": "solid",
+        "width": "3px",
+        "color": "rgb(124, 247, 196)",
+        "box": {
+          "x": 16,
+          "y": 12,
+          "width": 160,
+          "height": 46.34375
+        }
+      },
+      "skipDestination": "#main"
+    }
+  },
+  "failures": [],
+  "expected404ConsoleDiagnostic": "Chromium reports the intentional top-level HTTP 404 as a failed resource; the designed 404 document itself has no script/page error."
+}

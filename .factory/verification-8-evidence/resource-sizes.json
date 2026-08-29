@@ -1,0 +1,116 @@
+{
+  "entries": [
+    {
+      "name": "https://worktree-agent-pulse.sociobot.in/",
+      "type": "navigation",
+      "transfer": 810,
+      "encoded": 510,
+      "decoded": 1711,
+      "duration": 334.5
+    },
+    {
+      "name": "https://worktree-agent-pulse.sociobot.in/assets/main-CLzlZuAS.js",
+      "type": "script",
+      "transfer": 11823,
+      "encoded": 11523,
+      "decoded": 34898,
+      "duration": 11.899999998509884
+    },
+    {
+      "name": "https://worktree-agent-pulse.sociobot.in/assets/main-Dq_q5cFL.css",
+      "type": "link",
+      "transfer": 6530,
+      "encoded": 6230,
+      "decoded": 25039,
+      "duration": 10.199999999254942
+    },
+    {
+      "name": "https://worktree-agent-pulse.sociobot.in/assets/space-grotesk-latin-wght-normal-BhU9QXUp.woff2",
+      "type": "css",
+      "transfer": 22588,
+      "encoded": 22288,
+      "decoded": 22288,
+      "duration": 8.900000002235174
+    },
+    {
+      "name": "https://worktree-agent-pulse.sociobot.in/assets/hero-lattice.webp",
+      "type": "img",
+      "transfer": 64148,
+      "encoded": 63848,
+      "decoded": 63848,
+      "duration": 10.100000001490116
+    },
+    {
+      "name": "https://worktree-agent-pulse.sociobot.in/assets/ibm-plex-mono-latin-400-normal-DMJ8VG8y.woff2",
+      "type": "css",
+      "transfer": 15008,
+      "encoded": 14708,
+      "decoded": 14708,
+      "duration": 39.900000002235174
+    },
+    {
+      "name": "https://worktree-agent-pulse.sociobot.in/assets/ibm-plex-mono-latin-600-normal-BgSNZQsw.woff2",
+      "type": "css",
+      "transfer": 15920,
+      "encoded": 15620,
+      "decoded": 15620,
+      "duration": 40.099999997764826
+    },
+    {
+      "name": "https://worktree-agent-pulse.sociobot.in/assets/walkthrough-add-repository.png",
+      "type": "img",
+      "transfer": 34549,
+      "encoded": 34249,
+      "decoded": 34249,
+      "duration": 13.800000000745058
+    },
+    {
+      "name": "https://worktree-agent-pulse.sociobot.in/assets/walkthrough-inspect.png",
+      "type": "img",
+      "transfer": 45331,
+      "encoded": 45031,
+      "decoded": 45031,
+      "duration": 14
+    },
+    {
+      "name": "https://worktree-agent-pulse.sociobot.in/assets/walkthrough-terminal.png",
+      "type": "img",
+      "transfer": 61147,
+      "encoded": 60847,
+      "decoded": 60847,
+      "duration": 14.099999997764826
+    }
+  ],
+  "totals": {
+    "other": {
+      "transfer": 141837,
+      "encoded": 140637,
+      "decoded": 141838,
+      "count": 4
+    },
+    "js": {
+      "transfer": 11823,
+      "encoded": 11523,
+      "decoded": 34898,
+      "count": 1
+    },
+    "css": {
+      "transfer": 6530,
+      "encoded": 6230,
+      "decoded": 25039,
+      "count": 1
+    },
+    "fonts": {
+      "transfer": 53516,
+      "encoded": 52616,
+      "decoded": 52616,
+      "count": 3
+    },
+    "hero": {
+      "transfer": 64148,
+      "encoded": 63848,
+      "decoded": 63848,
+      "count": 1
+    }
+  }
+}
