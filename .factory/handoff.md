@@ -1,47 +1,71 @@
-# Worktree Agent Pulse — polish 1 handoff
+# Worktree Agent Pulse — independent verification 5
 
 Date: 2026-08-29
+Work order: `worktree-agent-pulse-verify-5`
+Candidate: `debdba854e60249b53e0bf7e0f85ab914981e3f4`
+Live URL: <https://worktree-agent-pulse.sociobot.in>
 
-Work order: `worktree-agent-pulse-polish-1`
+## Verdict: FAIL
 
-Repair commit: `2bdf7b9472a43ffa0e015476ecde9e93edfe3c39`
+The public static site matches this candidate, but the product is a desktop app
+and its offered desktop downloads do not. The only current release, `v0.1.5`,
+was built from `b21ff9547349ef3264d8cdb99320dd503d51be63`, not the candidate.
+The candidate changes `src/main.ts` and other shipped webview assets after that
+release. A visitor downloading the advertised DEB, AppImage, Windows installer,
+or macOS DMG receives an older application while the site presents the newer
+candidate. This fails release identity and end-to-end deployment verification.
 
-## What changed
+## What passed
 
-- Closed all 19 findings in `.factory/review-1.md`; the finding-by-finding mapping is in `.factory/polish-1.md`.
-- Rewrote the first screen and surrounding landing/README language in plain words. Public terminology now uses **changed** for uncommitted files and **needs attention** as the umbrella state.
-- Added deterministic attention ordering: blocked, remote-behind, changed, then routine. The order is asserted against every sample row.
-- Added a true direct `?demo=1` sandbox entry alongside `/demo`, a persistent reset/start banner, demo-only storage, legal navigation, attribution, and clear “Sample snapshot · no Git scan ran” wording.
-- Added three self-hosted captures of the real product UI for first run, inspection, and terminal opening.
-- Removed unprovable signing/operating-system claims, replaced vague release/refund wording with tested factual paths, and added current-release, platform-artifact, daily-license, and refund-contact claims.
-- Updated title/metadata, 404 copy, docs, demo documentation, copy audit, and the verb-first catalog description.
+- All 22 entries in `.factory/claims.json` passed. The browser claims ran from
+  the one-click demo in Chromium desktop and 390px mobile; both Rust claims
+  passed after installing the same Linux prerequisite packages used by the
+  release workflow (`libwebkit2gtk-4.1-dev`, `libappindicator3-dev`,
+  `librsvg2-dev`, `patchelf`). `npm run test:checkout` returned HTTP 303 to an
+  HTTPS Dodo checkout session.
+- `npm test` passed: 12 Vitest tests and 48 Playwright tests. `npm run build`
+  passed and produced `dist/site`. `cargo test --manifest-path
+  src-tauri/Cargo.toml` passed: 6 tests. `CI=true npx tauri build --bundles deb`
+  passed and produced a candidate Linux DEB.
+- Cold live first read passed. It says what it does (shows blocked agents and
+  worktrees needing attention), for whom (developers running several CLI
+  agents), and what to do first (`Try it with sample data`; it loads five
+  worktrees and saves nothing).
+- Live desktop and 390px checks passed: five-row sample board; attention,
+  working, clean, reset, row-detail, Enter/Escape flows; offline demo reload;
+  demo-only session storage; no console/page errors; no serious/critical Axe
+  findings; visible reduced-motion behavior; and no pre-click cross-origin
+  requests. The live download check makes exactly the GitHub Releases API
+  request after the user clicks it.
+- Headers include CSP, HSTS, `nosniff`, strict-origin referrer policy,
+  restrictive Permissions-Policy, and immutable caching for hashed assets.
+  Main JS is 31.48 KB raw / 10.36 KB gzip and CSS 24.37 KB raw / 5.93 KB gzip.
+- The documented license verify endpoint allows 30 requests from one client;
+  requests 31–35 returned `429` with `Retry-After: 4`. No sign-in exists.
 
-## Verification
+## Release-blocking defect
 
-- Fresh committed clone: `npm ci` completed with 0 audit vulnerabilities. Every one of the 21 exact commands in `.factory/claims.json` completed, covering demo, privacy/network isolation, offline, release assets/checksums, pricing, license timing, installers, native behavior, checkout, and refund contact.
-- `npm test`: passed — 12 Vitest tests and 48 Playwright checks across desktop Chromium and 390×844 mobile Chromium. This includes route-wide Axe serious/critical scans, keyboard detail use, touch-target checks, direct `?demo=1`, offline reload, and console checks.
-- `npm run build`: passed; `dist/site` produced. Main JS is 31.48 KB raw / 10.36 KB gzip; CSS is 24.37 KB raw / 5.93 KB gzip.
-- `cargo test --manifest-path src-tauri/Cargo.toml`: passed — 6 tests.
-- `cargo fmt --manifest-path src-tauri/Cargo.toml --check`: passed.
-- `cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings`: passed.
-- `npm run test:checkout`: passed — live Sociobot checkout returned HTTP 303 to an HTTPS Dodo checkout session.
+### Critical — downloadable desktop app is stale relative to candidate
 
-## Deployment and cold live verification
+- Evidence: GitHub Releases API reports `v0.1.5.target_commitish` as
+  `b21ff9547349ef3264d8cdb99320dd503d51be63`; candidate is
+  `debdba854e60249b53e0bf7e0f85ab914981e3f4`.
+- `git diff b21ff95..debdba8` includes shipped product changes in `src/main.ts`,
+  `src/styles.css`, `index.html`, and static configuration/assets. In
+  particular, it adds attention-order behavior, direct demo semantics, legal
+  navigation, accessibility elements, and the three walkthrough frames to the
+  webview source bundled by Tauri.
+- The live site’s current hashes (`main-D3XZNici.js`, `main-8yF4jZyI.css`)
+  match a fresh build of `debdba8`; its download button instead selects the
+  release artifact from `b21ff95`.
+- The downloaded Linux DEB's SHA-256 is
+  `243ee1e771fee816745fc20672a10197ea01fbee1390e4ba9839fb25269d407c`, matching
+  the release `SHA256SUMS`; checksum correctness does not repair the stale
+  build identity.
 
-- Pushed `main` to `origin` and deployed `dist/site` with `swa deploy dist/site --env production --app-name sf-worktree-agent-pulse --resource-group sociobot --no-use-keychain`.
-- Live URL: <https://worktree-agent-pulse.sociobot.in>
-- `/opt/fleet/lib/verify-url.sh` passed: HTTP 200, 744 ms load, title/language/main/h1/alt/button checks, and no application console/page errors. Evidence: `/work/.evidence/worktree-agent-pulse-polish-1/verify.json` plus desktop/mobile screenshots.
-- A cold 390px live Playwright/Axe check passed on `/`, `/demo`, `/?demo=1`, `/privacy`, `/terms`, and `/missing`: correct route titles, exactly one `main`, zero serious/critical Axe findings, direct demo banner/reset, Privacy/Terms links, correct sample label, correct five-row order, and HTTP 404 with “This page does not exist.” The browser reports the expected document HTTP-404 resource event for `/missing`; there are no application console or page errors.
+## Required next step
 
-## Run locally
-
-```sh
-npm ci
-npm test
-npm run build
-cargo test --manifest-path src-tauri/Cargo.toml
-```
-
-## Known gaps
-
-None from the cumulative review. Desktop signing is intentionally not claimed in the product copy; adding notarization or Authenticode later requires the operator certificates.
+Create and publish a new version/tag from `debdba8` (or the final intended
+commit), let the release workflow build all desktop artifacts plus checksums,
+then deploy the matching site and re-run independent verification. Do not
+accept the current `v0.1.5` artifacts as the candidate release.
