@@ -1,0 +1,14 @@
+{
+  "url": "https://worktree-agent-pulse.sociobot.in",
+  "loadMs": 859,
+  "errors": [],
+  "a11y": {
+    "title": "Worktree Agent Pulse — Monitor worktrees",
+    "lang": "en",
+    "h1": 1,
+    "main": true,
+    "imgsMissingAlt": 0,
+    "buttonsUnlabeled": 0,
+    "textLength": 2070
+  }
+}
