@@ -26,4 +26,6 @@ Target: repair of `fd79a227cecd7880222af0b1c64653d44c620338` from adversarial re
 
 ## Verification record
 
-Run the exact claim commands in `.factory/claims.json` from the committed clean clone. Full local evidence, deployment commit, and cold-live checks are recorded in `.factory/handoff.md` after deployment.
+All rows above were rechecked cold at <https://worktree-agent-pulse.sociobot.in> after production deployment. Live evidence is in `/work/.evidence/worktree-agent-pulse-polish-1/`: `verify.json`, `screenshot-desktop.png`, `screenshot-mobile.png`, and `live-demo-mobile.png`. The live mobile suite confirmed the corrected title/h1, all legal routes, the HTTP 404 page, `?demo=1`, demo Privacy/Terms links, sample-only wording, deterministic order `checkout → invoice → northstar → search → auth`, zero serious/critical Axe findings, and no application console/page errors.
+
+The exact claim commands in `.factory/claims.json` were run from a committed clean clone. Full local evidence, deployment commit, and cold-live checks are recorded in `.factory/handoff.md`.
