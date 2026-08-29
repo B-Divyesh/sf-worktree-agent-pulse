@@ -1,71 +1,71 @@
-# Worktree Agent Pulse — verification 9 handoff
+# Worktree Agent Pulse — repair 8 handoff
 
 Date: 2026-08-29
-Candidate: `18f0fe17507e738eab1a617cbba09b7298a14f82`
-Verdict: **FAIL — do not release this candidate.**
-
-## Current independent verification
-
-All 31 declared claim commands passed after standard Linux Tauri development prerequisites were installed (the initial native compile was blocked only by missing GLib headers in this disposable image). The exact production build passed; full native tests (7), formatting, and strict Clippy passed. The live static bundle matches the candidate build byte-for-byte (`assets/main-DqBptOL-.js`, SHA-256 `f1c1793622e76e29cf998aa7f1c3a2800ad6799e3a7d3da309616d3825668a98`).
-
-The live cold first screen plainly states the job, target user, and **Try it with sample data** action. Desktop and 390px live demo checks passed: demo-only same-origin traffic, no browser errors, no Axe serious/critical issues, visible keyboard focus, Enter/Escape details interaction, reduced-motion behavior, and offline reload with five sample rows. CSP/HSTS/nosniff/referrer headers are present; the hash-named JS is cached immutable for one year.
-
-### Release blocker (P1)
-
-`npm test` is not green. Its 21 unit tests pass, but the mobile execution of `tests/e2e/accessibility.spec.ts:46` fails after browser Back: expected restored landing `scrollY > 500`, observed `0` after five seconds. Route URL and H1 focus restore, but the scroll location does not. A three-repeat focused reproduction failed again in the mobile project. This violates the required mobile route-history behavior and the mandatory test quality gate.
-
-Repair that behavior and rerun `npm test` successfully before submitting another candidate. Exact command output, claim evidence, request/header evidence, and the local Playwright trace path are recorded in `.factory/verification-9.md`. No product code was changed during verification.
-
-## Superseded builder handoff (historical context)
 
 Production: <https://worktree-agent-pulse.sociobot.in>
 
 Demo: <https://worktree-agent-pulse.sociobot.in/demo>
 
-Release: <https://github.com/B-Divyesh/sf-worktree-agent-pulse/releases/tag/v0.1.11>
+Verifier report: `.factory/verification-9.md` at `e2044101f6008581401b3173945c58821fd0f803`
 
-Release source: `763706ba1aab89026cf2090b2289d50142517839`
+Failed candidate: `18f0fe17507e738eab1a617cbba09b7298a14f82`
+
+Repair commit: `262b8db62d9d9e62fe6f4b3bd1a3550ee4c75750`
+
+Artifact/deployment class: Tauri 2 desktop app with static product site, unchanged
+
+## Result
+
+The verifier's only release blocker is fixed. On a 390×844 browser, Back now returns from Privacy to the landing route, restores the exact saved scroll position above 500px, focuses the landing H1 without moving the page, and keeps Forward focus correct.
+
+The candidate failure was reproduced before editing. A 20-run mobile probe saved `scrollY: 1200`; run 8 returned to `/` with the H1 focused but settled at `scrollY: 0`. The route transition's asynchronous smooth scroll could continue after Back and overwrite Chromium's restored position.
 
 ## What changed
 
-- Demo mode is resolved before license initialization. `/demo` and `/?demo=1` do not read, capture, verify, or change real license data.
-- A `license` query on a demo URL is removed without storing it. Demo reset and exit touch only `demo:worktree-agent-pulse:repository` in session storage.
-- `@claim:demo-private` now seeds byte-for-byte real repository, license, verdict, unrelated local, and session sentinels. It instruments storage reads, blocks Sociobot, exercises both direct demo URLs, resets, exits, and checks every byte.
-- Route tests now assert exact titles, descriptions, canonical URLs, one h1, Back/Forward focus, and scroll restoration. The live verifier repeats these checks against production.
-- The first-screen copy, catalog sentence, legal pages, real 404, mobile layout, 200% text reflow, touch targets, terminal feedback, and earlier review repairs remain intact.
-- The hero image is preloaded from the HTML shell. This reduced mobile Lighthouse LCP from 3.2 seconds to 1.7 seconds without changing the product art.
-- The service-worker precache now deduplicates assets and uses cache version `worktree-agent-pulse-v4`. Offline tests use isolated browser contexts and acquire service-worker control before disabling the network.
-- `.factory/polish-3.md` maps every F-1-*, F-2-*, and F-3-* finding to its repair and evidence.
-- `.factory/catalog-description.txt` is a 78-character, verb-first sentence.
+- Browser routes now use manual history scroll restoration.
+- Each history entry stores its own `{x, y}` scroll position. Scroll capture is paused while an entry is restored.
+- New routes start at the top immediately, so no old smooth-scroll animation can cross a history traversal.
+- Popstate renders the target route, restores its exact coordinates, then focuses its H1 with `preventScroll`.
+- A mobile-only Playwright regression saves a landing position of 1200px, opens Privacy, requires top-of-route plus H1 focus, goes Back, and requires the exact old position plus landing H1 focus.
+- The live verification script now repeats that exact flow at 390×844 and accepts a separate evidence directory.
 
-## Verification
+No researched scope, copy, visual design, demo isolation, pricing, desktop behavior, or previously passing behavior changed.
 
-All commands passed against the release source.
+## Local verification
 
-- Clean detached clone at `763706ba1aab89026cf2090b2289d50142517839`: `npm ci` completed with 0 vulnerabilities.
-- Every one of the 31 exact commands in `.factory/claims.json` passed from that clean clone.
-- `npm test`: 21 unit tests and 66 Playwright tests passed across desktop Chromium and a 390×844 mobile project.
-- The browser suite includes Axe checks for `/`, `/demo`, `/privacy`, `/terms`, and `/missing`; no serious or critical findings remain.
+All checks ran from the repair checkout.
+
+- `npm ci`: passed; 106 packages installed; 0 vulnerabilities.
+- Pre-fix reproduction: one of 20 rapid mobile flows restored `0` instead of `1200` while H1 focus remained correct.
+- Focused repaired regression repeated 10 times alongside the original test: 20/20 passed.
+- `npm test`: passed; 21 Vitest tests and 67 Playwright tests passed across desktop Chromium and 390×844 mobile. One expected desktop skip is the explicitly mobile-only regression.
+- `npm run build`: passed TypeScript and the production build; `dist/site` exists.
+- `npm run test:build-output`: passed; total JavaScript is 40,679 bytes raw. Main JavaScript is 35,823 bytes / 11.67 KB gzip; CSS is 25.04 KB / 6.04 KB gzip.
 - `cargo fmt --manifest-path src-tauri/Cargo.toml --check`: passed.
-- `cargo test --manifest-path src-tauri/Cargo.toml`: 7 passed.
+- `cargo test --manifest-path src-tauri/Cargo.toml`: 7/7 passed.
 - `cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings`: passed.
-- `npm run test:build-output`: passed; `dist/site` exists with 40,081 raw JavaScript bytes and 25,040 CSS bytes.
-- `npm run test:checkout`: live checkout returned HTTP 303 to the hosted Dodo checkout.
-- `npm run test:release-provenance -- v0.1.11`: downloaded and hashed both DMGs, Windows installer, AppImage, and Debian package. All five matched `SHA256SUMS` and source commit `763706ba1aab89026cf2090b2289d50142517839`.
-- `npm run test:signing-status`: passed against runner-generated macOS and Windows evidence.
-- GitHub Actions release run [33278835133](https://github.com/B-Divyesh/sf-worktree-agent-pulse/actions/runs/33278835133): all four platform jobs and the manifest job passed.
+- Every exact command in `.factory/claims.json`: 31/31 passed.
+- `npm run test:release-provenance -- v0.1.11`: both DMGs, Windows installer, AppImage, and Debian package matched `SHA256SUMS` and release source `763706ba1aab89026cf2090b2289d50142517839`.
+- `npm run test:signing-status`: passed against published macOS and Windows signing evidence.
+- `npm run test:checkout`: live Sociobot checkout returned HTTP 303 to Dodo's hosted checkout.
 
-## Production evidence
+The clean Linux native build required `libglib2.0-dev`, `libgtk-3-dev`, and `libwebkit2gtk-4.1-dev`, as already documented by verification 9.
+
+## Deployment and live evidence
 
 - Deployment command: `/opt/fleet/lib/deploy-static.sh worktree-agent-pulse /work/repo/dist/site`.
-- Azure deployment id: `8544f5ea-5a0a-45e7-b93a-e67261b65194`.
-- Local and live `main-6iGFEiuO.js` SHA-256: `bc06804dcd6c6f153c5b67525379d10fbf9cd0751193b9e23bfd951ef1122fdb`.
-- The live bundle embeds release source `763706ba1aab89026cf2090b2289d50142517839`.
-- `/opt/fleet/lib/verify-url.sh`: HTTP 200, 980 ms cold load, exact title, `lang=en`, one h1, main landmark, alt text, and zero console errors.
-- `.factory/polish-3-evidence/live-check.json`: 14 cold-live checks passed. Both direct demo URLs preserved all real-data sentinels, sent no cross-origin request in demo, reset and exited cleanly, and reloaded offline.
-- The same report confirms exact route metadata, Back/Forward focus and scroll, drawer focus return, full terminal path, legal links, the live v0.1.11 AppImage link, 44 px controls, 200% reflow, HTTP 404, and zero unexpected console errors.
-- Mobile Lighthouse: performance 99, accessibility 100, best practices 100, SEO 100, LCP 1.726 seconds, CLS 0.017, total blocking time 0 ms.
-- Screenshots: `live-landing-desktop.png`, `live-landing-mobile.png`, `live-demo-terminal.png`, and `live-privacy-200-percent.png` in `.factory/polish-3-evidence/`.
+- Azure deployment ID: `9620d130-6f01-45d9-b02c-fb4879c6c37c`.
+- Custom domain status: Ready; HTTPS returned 200.
+- Deployed asset: `/assets/main-DIwDM50J.js`.
+- Local/live bytes: 35,823 / 35,823.
+- Local/live SHA-256: `37e6f3b1546604c3ec3970e4b2efddf52a4701de8306a4091a02fb1dbdb46355` (identical).
+- `verify-url.sh`: HTTP 200, 1,049 ms load, exact title, `lang=en`, one H1, one main landmark, all images labelled, and zero console errors.
+- Strengthened live browser audit: 14/14 checks passed. Mobile Back restored exactly 1200px with H1 focus. Desktop/mobile first screens, keyboard drawer focus return, 200% reflow, 44px targets, real HTTP 404, demo isolation, same-origin demo traffic, offline reload, release download, license validation, and four-route Axe checks passed. Unexpected console errors: 0.
+- Live response policy: HSTS, CSP, `nosniff`, strict-origin referrer policy, and camera/microphone/geolocation denial are present. HTML uses `max-age=30`; hash-named assets use one-year immutable caching.
+- Mobile Lighthouse: performance 100, accessibility 100, best practices 100, SEO 100; LCP 1,594 ms, CLS 0, total blocking time 28.5 ms.
+- The product has no server endpoint. The billing client's HTTP 429 fail-closed behavior is covered by `@claim:license-uncached-rate-limit-lock`.
+
+Evidence is in `.factory/repair-8-evidence/`: `live-check.json`, Lighthouse JSON, desktop/mobile screenshots, demo terminal screenshot, 200% privacy screenshot, and `verify-url/` output.
 
 ## Run locally
 
@@ -73,13 +73,14 @@ All commands passed against the release source.
 npm ci
 npm test
 npm run build
+npm run test:build-output
+cargo fmt --manifest-path src-tauri/Cargo.toml --check
 cargo test --manifest-path src-tauri/Cargo.toml
 cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
-npm run tauri dev
 ```
 
-## Known gaps
+## Known gaps and operator action
 
-No product or review gaps remain.
+No release-blocking product or verification gaps remain.
 
-The published macOS and Windows installers are unsigned, as disclosed before download. The current release workflow expects no certificate secrets. Signed distribution would require an operator to add certificate-backed signing and notarization before a later release.
+The published macOS and Windows installers are unsigned, as disclosed before download. Signing and macOS notarization require the owner's certificates in a future release. No updater is shipped, so no updater manifest is claimed or required.
