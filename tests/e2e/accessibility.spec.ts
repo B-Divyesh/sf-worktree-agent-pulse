@@ -138,3 +138,12 @@ test("buy action targets the provisioned checkout endpoint", async ({ page }) =>
     "https://api.sociobot.in/api/v1/products/worktree-agent-pulse/checkout",
   );
 });
+
+test("download disclosure links to exact unsigned install steps", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByText("Current macOS and Windows builds are unsigned.")).toBeVisible();
+  await expect(page.getByRole("link", { name: /Read the install steps/ })).toHaveAttribute(
+    "href",
+    "https://github.com/B-Divyesh/sf-worktree-agent-pulse#install-an-unsigned-build",
+  );
+});
