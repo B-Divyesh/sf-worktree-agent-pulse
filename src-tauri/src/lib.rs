@@ -447,14 +447,21 @@ mod tests {
     /// @claim:status-values
     #[test]
     fn claim_status_values_accepts_only_the_documented_states() {
-        let unique = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos();
+        let unique = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
         let root = std::env::temp_dir().join(format!("pulse-status-values-{unique}"));
         let status_dir = root.join(".worktree-agent-pulse");
         fs::create_dir_all(&status_dir).unwrap();
         let status_file = status_dir.join("status.json");
 
         for expected in ["working", "blocked", "idle"] {
-            fs::write(&status_file, format!(r#"{{"agent":"Fixture","state":"{expected}"}}"#)).unwrap();
+            fs::write(
+                &status_file,
+                format!(r#"{{"agent":"Fixture","state":"{expected}"}}"#),
+            )
+            .unwrap();
             assert_eq!(read_adapter(&root).1, expected);
         }
         fs::write(&status_file, r#"{"agent":"Fixture","state":"waiting"}"#).unwrap();

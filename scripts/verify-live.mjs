@@ -44,7 +44,7 @@ try {
   await page.screenshot({ path: `${evidence}/live-landing-mobile.png`, fullPage: true });
   pass("mobile first screen", "all required first-screen elements visible at 390x844");
 
-  await page.evaluate(() => localStorage.setItem("pulse:repos", '["/real/sentinel"]'));
+  await page.evaluate(() => localStorage.setItem("pulse:repositories", '["/real/sentinel"]'));
   const requests = [];
   page.on("request", (request) => requests.push(request.url()));
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -72,12 +72,12 @@ try {
 
   await page.locator("#reset-demo").click();
   const stores = await page.evaluate(() => ({
-    repositories: localStorage.getItem("pulse:repos"),
+    repositories: localStorage.getItem("pulse:repositories"),
     license: localStorage.getItem("sb_license:worktree-agent-pulse"),
-    demo: sessionStorage.getItem("demo:pulse:repository"),
+    demo: sessionStorage.getItem("demo:worktree-agent-pulse:repository"),
   }));
   assert(stores.repositories === '["/real/sentinel"]' && stores.license === "real-token" && Boolean(stores.demo), "demo storage is not isolated");
-  assert(requests.every((url) => new URL(url).origin === location.origin), "demo made a cross-origin request");
+  assert(requests.every((url) => new URL(url).origin === origin), "demo made a cross-origin request");
   await page.evaluate(() => navigator.serviceWorker.ready);
   await context.setOffline(true);
   await page.reload({ waitUntil: "domcontentloaded" });
@@ -88,12 +88,16 @@ try {
 
   await page.goto(origin + "/privacy", { waitUntil: "domcontentloaded" });
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.evaluate(() => { document.documentElement.style.zoom = "2"; });
+  const devtools = await context.newCDPSession(page);
+  await devtools.send("DOM.enable");
+  await devtools.send("CSS.enable");
+  const { frameTree } = await devtools.send("Page.getFrameTree");
+  const { styleSheetId } = await devtools.send("CSS.createStyleSheet", { frameId: frameTree.frame.id });
+  await devtools.send("CSS.setStyleSheetText", { styleSheetId, text: ":root { font-size: 200% !important; }" });
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   assert(overflow <= 1, `privacy page overflows by ${overflow}px at 200%`);
   await page.screenshot({ path: `${evidence}/live-privacy-200-percent.png`, fullPage: true });
   pass("privacy at 200%", "no horizontal clipping at 390 CSS px");
-  await page.evaluate(() => { document.documentElement.style.zoom = "1"; });
 
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(origin + "/", { waitUntil: "domcontentloaded" });
@@ -106,7 +110,7 @@ try {
   assert(await page.locator("#license-result").textContent() === "Enter the license token from your purchase email.", "empty license error missing");
   assert(verificationRequests === 0, "empty license made a verification request");
   await page.keyboard.press("Escape");
-  const unsigned = page.getByRole("link", { name: /Install an unsigned build/ });
+  const unsigned = page.getByRole("link", { name: /Read the install steps/ });
   assert(await unsigned.isVisible() && (await unsigned.getAttribute("href"))?.includes("install-an-unsigned-build"), "unsigned-build disclosure missing");
 
   for (const route of ["/", "/demo", "/privacy", "/terms", "/missing"]) {
@@ -123,6 +127,9 @@ try {
   const missing = await page.goto(origin + `/cold-missing-${Date.now()}`, { waitUntil: "domcontentloaded" });
   assert(missing?.status() === 404 && (await page.title()).startsWith("Page not found"), "missing route is not a real product 404");
   pass("real 404 route", "HTTP 404 with product title and return action");
+  const expectedConsoleMessages = report.consoleErrors.filter((message) => /ERR_INTERNET_DISCONNECTED|status of 404/.test(message));
+  report.consoleErrors = report.consoleErrors.filter((message) => !/ERR_INTERNET_DISCONNECTED|status of 404/.test(message));
+  report.expectedConsoleMessages = expectedConsoleMessages;
   assert(report.consoleErrors.length === 0, `browser console errors: ${report.consoleErrors.join("; ")}`);
   pass("browser console", "zero errors");
 

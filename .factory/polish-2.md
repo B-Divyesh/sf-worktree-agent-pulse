@@ -19,15 +19,15 @@ Every review-1 finding was regression-tested. Every review-2 finding was changed
 | F-1-10 | Preserved “Sample snapshot · no Git scan ran.” | `@claim:sample-five`; live `/demo` |
 | F-1-11 | Preserved three captioned, self-hosted desktop walkthrough frames. | `landing provides three captioned desktop walkthrough frames` |
 | F-1-12 | Preserved **changed** and **needs attention** terminology. | `.factory/copy-audit.md` terminology table |
-| F-1-13 | Preserved the job-first h1. | `@claim:first-screen-demo`; `polish-2-evidence/landing-mobile.png` |
+| F-1-13 | Preserved the job-first h1. | `@claim:first-screen-demo`; `polish-2-evidence/live-landing-mobile.png` |
 | F-1-14 | Preserved “LOCAL DESKTOP APP.” | `.factory/copy-audit.md` |
 | F-1-15 | Preserved the concrete five-worktree preview caption. | `.factory/copy-audit.md` |
 | F-1-16 | Preserved the descriptive three-step heading. | `.factory/copy-audit.md` |
 | F-1-17 | Preserved “What Pulse reads and ignores.” | `.factory/copy-audit.md`; `@claim:metadata-only` |
 | F-1-18 | Preserved the plain “status file” wording. | README optional status-file section |
 | F-1-19 | Preserved the literal missing-page h1 and broken-rail treatment. | Axe `/missing`; live unknown-route HTTP 404 |
-| F-2-1 | Made the drawer heading focusable, stopped internal renders from focusing h1, remembered the invoking row, and restored it on button/Escape close. The skip link now sits inside the app header landmark. | `keyboard opens and closes worktree details`; drawer Axe scan |
-| F-2-2 | Added safe heading breaks and a mobile legal-page scale that reflows at 200%. | `privacy reflows at 200 percent text on a 390px viewport`; `polish-2-evidence/privacy-200-percent.png` |
+| F-2-1 | Made the drawer heading focusable, stopped internal renders from focusing h1, remembered the invoking row, and restored it on button/Escape close. The skip link now sits inside the app header landmark. Drawer motion keeps full text contrast throughout. | `keyboard opens and closes worktree details`; live drawer Axe scan in `polish-2-evidence/live-check.json` |
+| F-2-2 | Added safe heading breaks and a mobile legal-page scale that reflows at 200%. | `privacy reflows at 200 percent text on a 390px viewport`; `polish-2-evidence/live-privacy-200-percent.png` |
 | F-2-3 | Added pre-download unsigned disclosure, exact install steps, and runner-generated signing evidence for shipped DMGs/EXE. | `@claim:unsigned-builds`; `download disclosure links to exact unsigned install steps`; release `signing-status.json` |
 | F-2-4 | Empty verification now announces a direct error, sets `required`/`aria-invalid`/`aria-describedby`, focuses the input, and sends no request. | `empty license validation explains the error and focuses the field` |
 | F-2-5 | Applied 44×44 minimum hit areas to links in headers, footers, banners, legal copy, and navigation at every viewport. | `desktop controls have 44px targets on every public route`; mobile target test |
@@ -37,7 +37,7 @@ Every review-1 finding was regression-tested. Every review-2 finding was changed
 | F-2-9 | Added native fixtures for working, blocked, idle, invalid, absent, and missing status files; unsupported values now map to no state. | `@claim:status-values` |
 | F-2-10 | Added `engines.node >=22` and verified package, runtime, and release workflow agreement. | `@claim:node-setup` |
 | F-2-11 | Registered observable build-output and release-matrix claims. | `@claim:build-output`; `@claim:release-workflow` |
-| F-2-12 | The preview action now renders the full sample path and explains what installed Pulse does. | `terminal preview gives a visible result`; `polish-2-evidence/demo-terminal-confirmation.png` |
+| F-2-12 | The preview action now renders the full sample path and explains what installed Pulse does. | `terminal preview gives a visible result`; `polish-2-evidence/live-demo-terminal.png` |
 | F-2-13 | Replaced “remote-behind” with “remote changes to pull.” | `.factory/copy-audit.md` |
 | F-2-14 | Replaced “WebView storage” with “on this device.” | README desktop section |
 | F-2-15 | Replaced decorative “BOUNDARIES” with “DATA ACCESS.” | `.factory/copy-audit.md` |
@@ -49,5 +49,12 @@ Every review-1 finding was regression-tested. Every review-2 finding was changed
 - `polish-2-evidence/landing-mobile.png`
 - `polish-2-evidence/demo-terminal-confirmation.png`
 - `polish-2-evidence/privacy-200-percent.png`
+- `polish-2-evidence/live-landing-desktop.png`
+- `polish-2-evidence/live-landing-mobile.png`
+- `polish-2-evidence/live-demo-terminal.png`
+- `polish-2-evidence/live-privacy-200-percent.png`
+- `polish-2-evidence/live-check.json`
+- `polish-2-evidence/verify-url/verify.json`
+- `polish-2-evidence/lighthouse-mobile.json`
 
 The final clean-clone commands, release identifiers, deployment command, Lighthouse scores, URL verifier result, and live cold checks are recorded in `.factory/handoff.md`.
