@@ -1,5 +1,15 @@
 import { expect, test } from "@playwright/test";
 
+const baseURL = "http://127.0.0.1:4173";
+
+async function waitForServiceWorkerControl(page: import("@playwright/test").Page): Promise<void> {
+  await page.evaluate(() => navigator.serviceWorker.ready);
+  if (!await page.evaluate(() => Boolean(navigator.serviceWorker.controller))) {
+    await page.reload({ waitUntil: "domcontentloaded" });
+  }
+  await page.waitForFunction(() => Boolean(navigator.serviceWorker.controller));
+}
+
 test("@claim:sample-five loads five sample worktrees in one click", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("link", { name: "Try it with sample data" }).click();
@@ -12,7 +22,7 @@ test("@claim:sample-five loads five sample worktrees in one click", async ({ pag
   await expect(page.getByRole("button", { name: "Reset demo" })).toBeVisible();
 });
 
-test("@claim:attention places blocked, remote-behind, and changed worktrees before routine worktrees", async ({ page }) => {
+test("@claim:attention places blocked worktrees, changes to pull, and local changes before routine worktrees", async ({ page }) => {
   await page.goto("/demo");
   const blocked = page.locator('[data-worktree="wt-checkout"]');
   await expect(blocked).toContainText("Blocked");
@@ -114,14 +124,20 @@ test("@claim:demo-private isolates both direct demo paths from real data", async
   }
 });
 
-test("@claim:offline-demo reloads the sample while offline", async ({ page, context }) => {
-  await page.goto("/demo");
-  await page.evaluate(async () => { await navigator.serviceWorker.ready; if (!navigator.serviceWorker.controller) await new Promise<void>((resolve) => navigator.serviceWorker.addEventListener("controllerchange", () => resolve(), { once: true })); });
-  const cachedUrls = await page.evaluate(async () => (await (await caches.open("worktree-agent-pulse-v3")).keys()).map((request) => request.url));
-  expect(cachedUrls.some((url) => url.includes("/assets/main-"))).toBe(true);
-  await context.setOffline(true);
-  await page.goto("/demo");
-  await expect(page.locator(".pulse-board [data-worktree]")).toHaveCount(5);
+test("@claim:offline-demo reloads the sample while offline", async ({ browser }) => {
+  const context = await browser.newContext({ baseURL });
+  const page = await context.newPage();
+  try {
+    await page.goto("/demo");
+    await waitForServiceWorkerControl(page);
+    const cachedUrls = await page.evaluate(async () => (await (await caches.open("worktree-agent-pulse-v4")).keys()).map((request) => request.url));
+    expect(cachedUrls.some((url) => url.includes("/assets/main-"))).toBe(true);
+    await context.setOffline(true);
+    await page.goto("/demo");
+    await expect(page.locator(".pulse-board [data-worktree]")).toHaveCount(5);
+  } finally {
+    await context.close();
+  }
 });
 
 test("@claim:free-price shows the free limit and one-time price", async ({ page }) => {
@@ -204,26 +220,29 @@ test("@claim:license-local stores a returned license locally and sends it only t
   expect(outsideRequests).toEqual(["https://api.sociobot.in/api/v1/products/worktree-agent-pulse/verify?license=fixture-token"]);
 });
 
-test("@claim:license-uncached-network-lock keeps an unverified returned token locked when billing is unavailable", async ({ page, context }) => {
-  let attempts = 0;
-  await page.route("https://api.sociobot.in/api/v1/products/worktree-agent-pulse/verify?license=unverified-network-token", async (route) => {
-    attempts += 1;
-    await route.abort("failed");
-  });
-  await page.goto("/?license=unverified-network-token");
-  await expect.poll(() => attempts).toBe(1);
-  await expect(page.getByRole("link", { name: "Buy Pulse Pro" })).toBeVisible();
-  await expect(page.getByText("Pulse Pro is active", { exact: false })).toHaveCount(0);
-  expect(await page.evaluate(() => localStorage.getItem("sb_license:worktree-agent-pulse:verdict"))).toBeNull();
+test("@claim:license-uncached-network-lock keeps an unverified returned token locked when billing is unavailable", async ({ browser }) => {
+  const context = await browser.newContext({ baseURL });
+  const page = await context.newPage();
+  try {
+    let attempts = 0;
+    await page.route("https://api.sociobot.in/api/v1/products/worktree-agent-pulse/verify?license=unverified-network-token", async (route) => {
+      attempts += 1;
+      await route.abort("failed");
+    });
+    await page.goto("/?license=unverified-network-token");
+    await expect.poll(() => attempts).toBe(1);
+    await expect(page.getByRole("link", { name: "Buy Pulse Pro" })).toBeVisible();
+    await expect(page.getByText("Pulse Pro is active", { exact: false })).toHaveCount(0);
+    expect(await page.evaluate(() => localStorage.getItem("sb_license:worktree-agent-pulse:verdict"))).toBeNull();
 
-  await page.evaluate(async () => {
-    await navigator.serviceWorker.ready;
-    if (!navigator.serviceWorker.controller) await new Promise<void>((resolve) => navigator.serviceWorker.addEventListener("controllerchange", () => resolve(), { once: true }));
-  });
-  await context.setOffline(true);
-  await page.reload();
-  await expect(page.getByRole("link", { name: "Buy Pulse Pro" })).toBeVisible();
-  await expect(page.getByText("Pulse Pro is active", { exact: false })).toHaveCount(0);
+    await waitForServiceWorkerControl(page);
+    await context.setOffline(true);
+    await page.reload();
+    await expect(page.getByRole("link", { name: "Buy Pulse Pro" })).toBeVisible();
+    await expect(page.getByText("Pulse Pro is active", { exact: false })).toHaveCount(0);
+  } finally {
+    await context.close();
+  }
 });
 
 test("@claim:license-uncached-rate-limit-lock keeps an unverified returned token locked after a billing 429", async ({ page }) => {

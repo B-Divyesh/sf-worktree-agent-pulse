@@ -95,7 +95,7 @@ function footer(): string {
   return `<footer class="site-footer">
     <p>See blocked agents and worktrees that need attention in one local board.</p>
     <nav aria-label="Footer"><a href="/privacy" data-route>Privacy</a><a href="/terms" data-route>Terms</a><span>Built by Param Factory</span></nav>
-    <p class="build-id">v0.1.10 · Generated artwork disclosed</p>
+    <p class="build-id">v0.1.11 · Generated artwork disclosed</p>
   </footer>`;
 }
 
@@ -257,7 +257,7 @@ function dashboard(mode: "demo" | "native"): string {
       ${selected ? detailPanel(selected, mode) : ""}
       <p class="scan-time" role="status">${mode === "demo" || isSampleProject ? "Sample snapshot · no Git scan ran" : "Last scan: just now · Git reads only"}</p>
     </main>
-      ${mode === "demo" ? `<footer class="app-footer"><span>Demo sample data stays separate from real data.</span><nav aria-label="Demo footer"><a href="/privacy" data-route>Privacy</a><a href="/terms" data-route>Terms</a><span>Built by Param Factory · v0.1.10</span></nav></footer>` : ""}
+      ${mode === "demo" ? `<footer class="app-footer"><span>Demo sample data stays separate from real data.</span><nav aria-label="Demo footer"><a href="/privacy" data-route>Privacy</a><a href="/terms" data-route>Terms</a><span>Built by Param Factory · v0.1.11</span></nav></footer>` : ""}
   </div><div class="live-region sr-only" aria-live="polite"></div><div id="dialog-root"></div>`;
 }
 

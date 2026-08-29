@@ -71,7 +71,10 @@ try {
   page.on("request", (request) => {
     if (demoActive && new URL(request.url()).origin !== origin) demoRequests.push(request.url());
   });
-  await page.route("https://api.sociobot.in/**", (route) => route.abort("failed"));
+  await page.route("https://api.sociobot.in/**", (route) => route.fulfill({
+    status: 204,
+    contentType: "application/json",
+  }));
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(origin + "/demo", { waitUntil: "domcontentloaded" });
   assert(demoRequests.length === 0, `direct /demo sent a cross-origin request: ${demoRequests.join(", ")}`);

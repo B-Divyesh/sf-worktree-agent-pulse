@@ -1,11 +1,11 @@
-const CACHE = "worktree-agent-pulse-v3";
+const CACHE = "worktree-agent-pulse-v4";
 const SHELL = ["/", "/demo", "/privacy", "/terms", "/assets/hero-lattice.webp", "/favicon.svg"];
 const BUILD_ASSETS = [];
 
 self.addEventListener("install", (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE);
-    await cache.addAll([...SHELL, ...BUILD_ASSETS]);
+    await cache.addAll([...new Set([...SHELL, ...BUILD_ASSETS])]);
     await self.skipWaiting();
   })());
 });

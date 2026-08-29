@@ -122,7 +122,7 @@
     "id": "release-source-provenance",
     "claim": "Every advertised desktop download is checksummed and built from the published release source commit.",
     "where": "desktop download section and release metadata",
-    "test": "npm run test:release-provenance -- v0.1.10",
+    "test": "npm run test:release-provenance -- v0.1.11",
     "sandbox": "public GitHub release API; assert the release target and latest.json source_commit match, then download and hash both macOS DMGs, Windows installer, AppImage, and Debian package"
   },
   {

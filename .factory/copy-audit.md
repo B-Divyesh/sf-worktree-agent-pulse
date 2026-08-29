@@ -49,7 +49,7 @@ Re-audited August 29, 2026 for polish round 3. Labels, actions, headings, captio
 | View all releases | 3 | Pass |
 | See blocked agents and worktrees that need attention in one local board. | 11 | Pass |
 | Built by Param Factory | 4 | Pass |
-| v0.1.10 | 1 | Pass |
+| v0.1.11 | 1 | Pass |
 | Generated artwork disclosed | 3 | Pass |
 
 ## Catalog description
