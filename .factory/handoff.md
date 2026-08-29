@@ -1,8 +1,22 @@
-# Worktree Agent Pulse — polish round 3 handoff
+# Worktree Agent Pulse — verification 9 handoff
 
 Date: 2026-08-29
+Candidate: `18f0fe17507e738eab1a617cbba09b7298a14f82`
+Verdict: **FAIL — do not release this candidate.**
 
-Verdict: **PASS — no review finding remains open.**
+## Current independent verification
+
+All 31 declared claim commands passed after standard Linux Tauri development prerequisites were installed (the initial native compile was blocked only by missing GLib headers in this disposable image). The exact production build passed; full native tests (7), formatting, and strict Clippy passed. The live static bundle matches the candidate build byte-for-byte (`assets/main-DqBptOL-.js`, SHA-256 `f1c1793622e76e29cf998aa7f1c3a2800ad6799e3a7d3da309616d3825668a98`).
+
+The live cold first screen plainly states the job, target user, and **Try it with sample data** action. Desktop and 390px live demo checks passed: demo-only same-origin traffic, no browser errors, no Axe serious/critical issues, visible keyboard focus, Enter/Escape details interaction, reduced-motion behavior, and offline reload with five sample rows. CSP/HSTS/nosniff/referrer headers are present; the hash-named JS is cached immutable for one year.
+
+### Release blocker (P1)
+
+`npm test` is not green. Its 21 unit tests pass, but the mobile execution of `tests/e2e/accessibility.spec.ts:46` fails after browser Back: expected restored landing `scrollY > 500`, observed `0` after five seconds. Route URL and H1 focus restore, but the scroll location does not. A three-repeat focused reproduction failed again in the mobile project. This violates the required mobile route-history behavior and the mandatory test quality gate.
+
+Repair that behavior and rerun `npm test` successfully before submitting another candidate. Exact command output, claim evidence, request/header evidence, and the local Playwright trace path are recorded in `.factory/verification-9.md`. No product code was changed during verification.
+
+## Superseded builder handoff (historical context)
 
 Production: <https://worktree-agent-pulse.sociobot.in>
 
