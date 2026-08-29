@@ -1,0 +1,67 @@
+{
+  "checkedAt": "2026-08-29T22:42:36.368Z",
+  "origin": "https://worktree-agent-pulse.sociobot.in",
+  "checks": [
+    {
+      "name": "/ metadata, structure, and axe",
+      "detail": "Worktree Agent Pulse — Monitor worktrees"
+    },
+    {
+      "name": "/demo metadata, structure, and axe",
+      "detail": "Demo — Worktree Agent Pulse"
+    },
+    {
+      "name": "/privacy metadata, structure, and axe",
+      "detail": "Privacy — Worktree Agent Pulse"
+    },
+    {
+      "name": "/terms metadata, structure, and axe",
+      "detail": "Terms — Worktree Agent Pulse"
+    },
+    {
+      "name": "history, focus, and scroll",
+      "detail": "Privacy navigation and Back/Forward restore the route heading; Back restores landing scroll"
+    },
+    {
+      "name": "desktop first screen",
+      "detail": "headline, audience sentence, sample CTA, explanation, and three facts visible"
+    },
+    {
+      "name": "mobile first screen",
+      "detail": "all required first-screen elements visible at 390x844"
+    },
+    {
+      "name": "isolated one-click demo",
+      "detail": "both direct URLs preserve real repository/license/verdict bytes, make no cross-origin demo request, reset cleanly, exit cleanly, and reload offline"
+    },
+    {
+      "name": "drawer keyboard and terminal feedback",
+      "detail": "heading focus, visible full path, Escape restores wt-checkout"
+    },
+    {
+      "name": "privacy at 200%",
+      "detail": "no horizontal clipping at 390 CSS px"
+    },
+    {
+      "name": "live release download",
+      "detail": "Linux button resolves through the GitHub API to the v0.1.11 AppImage"
+    },
+    {
+      "name": "forms, unsigned disclosure, and targets",
+      "detail": "empty license announced without a request; README link resolves; all desktop targets >=44px"
+    },
+    {
+      "name": "real 404 route",
+      "detail": "HTTP 404 with product title and return action"
+    },
+    {
+      "name": "browser console",
+      "detail": "zero errors"
+    }
+  ],
+  "consoleErrors": [],
+  "expectedConsoleMessages": [
+    "Failed to load resource: the server responded with a status of 404 ()",
+    "Failed to load resource: the server responded with a status of 404 ()"
+  ]
+}

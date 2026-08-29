@@ -18,14 +18,34 @@ try {
   page.on("console", (message) => { if (message.type() === "error") report.consoleErrors.push(message.text()); });
   page.on("pageerror", (error) => report.consoleErrors.push(error.message));
 
-  for (const route of ["/", "/demo", "/privacy", "/terms"]) {
+  const publicRoutes = [
+    ["/", "Worktree Agent Pulse — Monitor worktrees", `${origin}/`],
+    ["/demo", "Demo — Worktree Agent Pulse", `${origin}/demo`],
+    ["/privacy", "Privacy — Worktree Agent Pulse", `${origin}/privacy`],
+    ["/terms", "Terms — Worktree Agent Pulse", `${origin}/terms`],
+  ];
+  for (const [route, title, canonical] of publicRoutes) {
     const response = await page.goto(origin + route, { waitUntil: "domcontentloaded" });
     assert(response?.status() === 200, `${route} did not return 200`);
     assert(await page.locator("main").count() === 1 && await page.locator("h1").count() === 1, `${route} landmark or heading count`);
-    assert((await page.title()).includes("Worktree Agent Pulse"), `${route} title`);
+    assert(await page.title() === title, `${route} title`);
+    assert(await page.locator('link[rel="canonical"]').getAttribute("href") === canonical, `${route} canonical`);
+    assert(Boolean(await page.locator('meta[name="description"]').getAttribute("content")), `${route} description`);
     assert(!serious(await new AxeBuilder({ page }).analyze()), `${route} has serious or critical axe findings`);
     pass(`${route} metadata, structure, and axe`, await page.title());
   }
+
+  await page.goto(origin + "/", { waitUntil: "domcontentloaded" });
+  await page.evaluate(() => { document.documentElement.style.scrollBehavior = "auto"; window.scrollTo(0, 1200); });
+  await page.waitForFunction(() => scrollY > 500);
+  await page.getByRole("link", { name: "Privacy" }).first().click();
+  await page.waitForFunction(() => document.activeElement === document.querySelector("h1"));
+  await page.goBack({ waitUntil: "domcontentloaded" });
+  await page.waitForFunction(() => document.activeElement === document.querySelector("h1"));
+  assert(await page.evaluate(() => scrollY) > 500, "Back did not restore landing scroll");
+  await page.goForward({ waitUntil: "domcontentloaded" });
+  await page.waitForFunction(() => document.activeElement === document.querySelector("h1"));
+  pass("history, focus, and scroll", "Privacy navigation and Back/Forward restore the route heading; Back restores landing scroll");
 
   await page.goto(origin + "/", { waitUntil: "domcontentloaded" });
   for (const selector of ["h1", ".lede", ".hero-actions", ".plain-facts"]) {
@@ -148,6 +168,13 @@ try {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.evaluate(() => localStorage.clear());
   await page.goto(origin + "/", { waitUntil: "domcontentloaded" });
+  const releaseResponse = page.waitForResponse((response) => response.url().endsWith("/releases/latest"));
+  await page.getByRole("button", { name: "Check download for Linux" }).click();
+  assert((await releaseResponse).status() === 200, "GitHub latest-release request did not return 200");
+  const liveDownload = page.getByRole("link", { name: "Download for Linux" });
+  await liveDownload.waitFor();
+  assert((await liveDownload.getAttribute("href"))?.includes("/releases/download/v0.1.11/Worktree.Agent.Pulse_0.1.11_amd64.AppImage"), "live Linux download does not target v0.1.11");
+  pass("live release download", "Linux button resolves through the GitHub API to the v0.1.11 AppImage");
   let verificationRequests = 0;
   page.on("request", (request) => { if (request.url().includes("/verify?license=")) verificationRequests += 1; });
   await page.locator("#restore-license").click();
@@ -173,6 +200,7 @@ try {
 
   const missing = await page.goto(origin + `/cold-missing-${Date.now()}`, { waitUntil: "domcontentloaded" });
   assert(missing?.status() === 404 && (await page.title()).startsWith("Page not found"), "missing route is not a real product 404");
+  assert((await page.locator('link[rel="canonical"]').getAttribute("href")) === page.url(), "missing route canonical is not its real URL");
   pass("real 404 route", "HTTP 404 with product title and return action");
   const expectedConsoleMessages = report.consoleErrors.filter((message) => /ERR_INTERNET_DISCONNECTED|status of 404/.test(message));
   report.consoleErrors = report.consoleErrors.filter((message) => !/ERR_INTERNET_DISCONNECTED|status of 404/.test(message));

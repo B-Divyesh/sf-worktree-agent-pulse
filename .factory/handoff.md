@@ -1,50 +1,71 @@
-# Worktree Agent Pulse — adversarial review 3 handoff
+# Worktree Agent Pulse — polish round 3 handoff
 
 Date: 2026-08-29
 
-Reviewed commit: `d4b4a01555b688fed600ad0c6ce270dcdc0769a2`
+Verdict: **PASS — no review finding remains open.**
 
-Live site: <https://worktree-agent-pulse.sociobot.in>
+Production: <https://worktree-agent-pulse.sociobot.in>
 
-## Verdict: FAIL
+Demo: <https://worktree-agent-pulse.sociobot.in/demo>
 
-The complete review is `.factory/review-3.md`. No product code was changed.
+Release: <https://github.com/B-Divyesh/sf-worktree-agent-pulse/releases/tag/v0.1.11>
 
-One blocking defect remains: direct demo entry is not isolated from real
-license state. With a pre-existing uncached license, `/demo` reads the token,
-calls the Sociobot verification API, and writes a verdict to real local storage.
-`/?demo=1&license=…` also stores the returned token while demo mode is visible.
-The current `@claim:demo-private` test starts empty and misses both cases.
+Release source: `763706ba1aab89026cf2090b2289d50142517839`
 
-## Verification completed
+## What changed
 
-- Cold live first reads at 390×844 and 1440×900: clear and fully above fold.
-- All 31 exact `.factory/claims.json` commands: passed after installing the
-  documented Linux Tauri prerequisites in the disposable worker.
-- `npm test`: 21 unit and 64 Playwright tests passed.
-- `npm run build`: passed and produced `dist/site`.
+- Demo mode is resolved before license initialization. `/demo` and `/?demo=1` do not read, capture, verify, or change real license data.
+- A `license` query on a demo URL is removed without storing it. Demo reset and exit touch only `demo:worktree-agent-pulse:repository` in session storage.
+- `@claim:demo-private` now seeds byte-for-byte real repository, license, verdict, unrelated local, and session sentinels. It instruments storage reads, blocks Sociobot, exercises both direct demo URLs, resets, exits, and checks every byte.
+- Route tests now assert exact titles, descriptions, canonical URLs, one h1, Back/Forward focus, and scroll restoration. The live verifier repeats these checks against production.
+- The first-screen copy, catalog sentence, legal pages, real 404, mobile layout, 200% text reflow, touch targets, terminal feedback, and earlier review repairs remain intact.
+- The hero image is preloaded from the HTML shell. This reduced mobile Lighthouse LCP from 3.2 seconds to 1.7 seconds without changing the product art.
+- The service-worker precache now deduplicates assets and uses cache version `worktree-agent-pulse-v4`. Offline tests use isolated browser contexts and acquire service-worker control before disabling the network.
+- `.factory/polish-3.md` maps every F-1-*, F-2-*, and F-3-* finding to its repair and evidence.
+- `.factory/catalog-description.txt` is a 78-character, verb-first sentence.
+
+## Verification
+
+All commands passed against the release source.
+
+- Clean detached clone at `763706ba1aab89026cf2090b2289d50142517839`: `npm ci` completed with 0 vulnerabilities.
+- Every one of the 31 exact commands in `.factory/claims.json` passed from that clean clone.
+- `npm test`: 21 unit tests and 66 Playwright tests passed across desktop Chromium and a 390×844 mobile project.
+- The browser suite includes Axe checks for `/`, `/demo`, `/privacy`, `/terms`, and `/missing`; no serious or critical findings remain.
+- `cargo fmt --manifest-path src-tauri/Cargo.toml --check`: passed.
 - `cargo test --manifest-path src-tauri/Cargo.toml`: 7 passed.
-- `/opt/fleet/lib/verify-url.sh`: passed with zero console errors.
-- Axe CLI 4.10.3: zero violations on `/`, `/demo`, `/privacy`, `/terms`, and a
-  real 404 route.
-- Live demo: sample/reset/exit/offline behavior passed in the empty-state path;
-  the pre-existing/returned license cases failed isolation as described above.
-- All earlier F-1-* and F-2-* findings were rechecked live and in source and are
-  fixed.
-- Route metadata, deep links, Back/Forward focus, link crawl, 404, target sizes,
-  200% reflow, and visual identity passed.
+- `cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings`: passed.
+- `npm run test:build-output`: passed; `dist/site` exists with 40,081 raw JavaScript bytes and 25,040 CSS bytes.
+- `npm run test:checkout`: live checkout returned HTTP 303 to the hosted Dodo checkout.
+- `npm run test:release-provenance -- v0.1.11`: downloaded and hashed both DMGs, Windows installer, AppImage, and Debian package. All five matched `SHA256SUMS` and source commit `763706ba1aab89026cf2090b2289d50142517839`.
+- `npm run test:signing-status`: passed against runner-generated macOS and Windows evidence.
+- GitHub Actions release run [33278835133](https://github.com/B-Divyesh/sf-worktree-agent-pulse/actions/runs/33278835133): all four platform jobs and the manifest job passed.
 
-## How to reproduce the blocker
+## Production evidence
 
-In a fresh Playwright context, use `context.addInitScript` to set
-`sb_license:worktree-agent-pulse` and remove its verdict. Intercept
-`https://api.sociobot.in/**`, then open the live `/demo`. Observe the verification
-request and new real verdict key while the demo banner is visible. Separately
-open `/?demo=1&license=review3-return-token` and observe the real token key.
+- Deployment command: `/opt/fleet/lib/deploy-static.sh worktree-agent-pulse /work/repo/dist/site`.
+- Azure deployment id: `8544f5ea-5a0a-45e7-b93a-e67261b65194`.
+- Local and live `main-6iGFEiuO.js` SHA-256: `bc06804dcd6c6f153c5b67525379d10fbf9cd0751193b9e23bfd951ef1122fdb`.
+- The live bundle embeds release source `763706ba1aab89026cf2090b2289d50142517839`.
+- `/opt/fleet/lib/verify-url.sh`: HTTP 200, 980 ms cold load, exact title, `lang=en`, one h1, main landmark, alt text, and zero console errors.
+- `.factory/polish-3-evidence/live-check.json`: 14 cold-live checks passed. Both direct demo URLs preserved all real-data sentinels, sent no cross-origin request in demo, reset and exited cleanly, and reloaded offline.
+- The same report confirms exact route metadata, Back/Forward focus and scroll, drawer focus return, full terminal path, legal links, the live v0.1.11 AppImage link, 44 px controls, 200% reflow, HTTP 404, and zero unexpected console errors.
+- Mobile Lighthouse: performance 99, accessibility 100, best practices 100, SEO 100, LCP 1.726 seconds, CLS 0.017, total blocking time 0 ms.
+- Screenshots: `live-landing-desktop.png`, `live-landing-mobile.png`, `live-demo-terminal.png`, and `live-privacy-200-percent.png` in `.factory/polish-3-evidence/`.
 
-## Required next step
+## Run locally
 
-Determine demo mode before license initialization. Skip license reads, returned
-token capture, verification, and verdict writes in demo mode, and extend
-`@claim:demo-private` with pre-seeded real-storage sentinels and both supported
-direct demo URLs. Rerun the full review after deployment.
+```bash
+npm ci
+npm test
+npm run build
+cargo test --manifest-path src-tauri/Cargo.toml
+cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
+npm run tauri dev
+```
+
+## Known gaps
+
+No product or review gaps remain.
+
+The published macOS and Windows installers are unsigned, as disclosed before download. The current release workflow expects no certificate secrets. Signed distribution would require an operator to add certificate-backed signing and notarization before a later release.
