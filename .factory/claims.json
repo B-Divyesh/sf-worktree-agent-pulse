@@ -105,6 +105,13 @@
     "sandbox": "fresh checkout; inspect current public release assets and SHA256SUMS for both macOS builds, Windows, AppImage, and Debian"
   },
   {
+    "id": "release-source-provenance",
+    "claim": "Every advertised desktop download is checksummed and built from the published release source commit.",
+    "where": "desktop download section and release metadata",
+    "test": "npm run test:release-provenance -- v0.1.6",
+    "sandbox": "public GitHub release API; assert the release target and latest.json source_commit match, then download and hash both macOS DMGs, Windows installer, AppImage, and Debian package"
+  },
+  {
     "id": "exact-terminal-path",
     "claim": "Selecting a real worktree opens a terminal in that exact worktree folder.",
     "where": "landing How it works section and README",

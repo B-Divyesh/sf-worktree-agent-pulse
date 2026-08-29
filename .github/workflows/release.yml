@@ -34,6 +34,10 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+      - id: source
+        run: echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -48,6 +52,7 @@ jobs:
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VITE_BUILD_SOURCE_COMMIT: ${{ steps.source.outputs.commit }}
         with:
           tagName: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
           releaseName: "Worktree Agent Pulse ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}"
@@ -71,7 +76,8 @@ jobs:
         run: |
           cd release-assets
           find . -maxdepth 1 -type f ! -name 'SHA256SUMS' ! -name 'latest.json' -printf '%f\0' | sort -z | xargs -0 sha256sum > SHA256SUMS
-          node ../scripts/release-manifest.mjs "$RELEASE_TAG" "${{ github.repository }}"
+          SOURCE_COMMIT="$(git -C .. rev-parse HEAD)"
+          node ../scripts/release-manifest.mjs "$RELEASE_TAG" "${{ github.repository }}" "$SOURCE_COMMIT"
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.RELEASE_TAG }}

@@ -2,6 +2,7 @@ import "@fontsource-variable/space-grotesk";
 import "@fontsource/ibm-plex-mono/400.css";
 import "@fontsource/ibm-plex-mono/600.css";
 import "./styles.css";
+import { BUILD_SOURCE_COMMIT } from "./build-info";
 import { SAMPLE_REPOSITORY } from "./sample";
 import type { Filter, RepositoryPulse, WorktreePulse } from "./types";
 import { clearDemo, getDemoRepository, loadRepositoryPaths, removeRepositoryPath, resetDemo, saveRepositoryPath } from "./storage";
@@ -14,6 +15,7 @@ declare global { interface Window { __TAURI_INTERNALS__?: unknown } }
 const appRoot = document.querySelector<HTMLDivElement>("#app");
 if (!appRoot) throw new Error("App root is missing");
 const app = appRoot;
+app.dataset.buildSource = BUILD_SOURCE_COMMIT;
 
 const isNative = Boolean(window.__TAURI_INTERNALS__);
 let repository: RepositoryPulse | null = null;
@@ -65,7 +67,7 @@ function footer(): string {
   return `<footer class="site-footer">
     <p>See blocked agents and worktrees that need attention in one local board.</p>
     <nav aria-label="Footer"><a href="/privacy" data-route>Privacy</a><a href="/terms" data-route>Terms</a><span>Built by Param Factory</span></nav>
-    <p class="build-id">v0.1.5 · Generated artwork disclosed</p>
+    <p class="build-id">v0.1.6 · Generated artwork disclosed</p>
   </footer>`;
 }
 
@@ -227,7 +229,7 @@ function dashboard(mode: "demo" | "native"): string {
       ${selected ? detailPanel(selected, mode) : ""}
       <p class="scan-time" role="status">${mode === "demo" || isSampleProject ? "Sample snapshot · no Git scan ran" : "Last scan: just now · Git reads only"}</p>
     </main>
-    ${mode === "demo" ? `<footer class="app-footer"><span>Demo sample data stays separate from real data.</span><nav aria-label="Demo footer"><a href="/privacy" data-route>Privacy</a><a href="/terms" data-route>Terms</a><span>Built by Param Factory · v0.1.5</span></nav></footer>` : ""}
+      ${mode === "demo" ? `<footer class="app-footer"><span>Demo sample data stays separate from real data.</span><nav aria-label="Demo footer"><a href="/privacy" data-route>Privacy</a><a href="/terms" data-route>Terms</a><span>Built by Param Factory · v0.1.6</span></nav></footer>` : ""}
   </div><div class="live-region sr-only" aria-live="polite"></div><div id="dialog-root"></div>`;
 }
 

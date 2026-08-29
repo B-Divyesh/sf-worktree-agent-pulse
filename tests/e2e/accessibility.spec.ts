@@ -25,7 +25,7 @@ test("demo keeps legal navigation and sample semantics visible", async ({ page }
   await page.goto("/?demo=1");
   await expect(page.getByRole("link", { name: "Privacy" }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: "Terms" }).first()).toBeVisible();
-  await expect(page.getByText("Built by Param Factory · v0.1.5")).toBeVisible();
+  await expect(page.getByText("Built by Param Factory · v0.1.6")).toBeVisible();
   await expect(page.getByText("Sample snapshot · no Git scan ran")).toBeVisible();
   await expect(page).toHaveTitle("Demo — Worktree Agent Pulse");
 });
