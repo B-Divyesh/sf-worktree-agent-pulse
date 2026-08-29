@@ -15,7 +15,7 @@ Audited August 29, 2026. Labels, actions, headings, captions, and sentences that
 | Preview: five worktrees, including one blocked agent. | 7 | Pass |
 | THE BOARD | 2 | Pass |
 | See worktrees in attention order | 5 | Pass |
-| Blocked worktrees, remote-behind worktrees, and changed worktrees appear before routine worktrees. | 10 | Pass |
+| Worktrees with blocked agents, remote changes to pull, or local file changes appear before routine worktrees. | 15 | Pass |
 | HOW IT WORKS | 3 | Pass |
 | Monitor and open worktrees in three steps | 7 | Pass |
 | Add a repository | 3 | Pass |
@@ -28,7 +28,7 @@ Audited August 29, 2026. Labels, actions, headings, captions, and sentences that
 | Add a repository from the first-run screen. | 8 | Pass |
 | Inspect a blocked or changed worktree. | 7 | Pass |
 | Open the selected worktree in your terminal. | 8 | Pass |
-| BOUNDARIES | 1 | Pass |
+| DATA ACCESS | 2 | Pass |
 | What Pulse reads and ignores | 5 | Pass |
 | Pulse reads Git metadata and three status-file fields. | 8 | Pass |
 | It ignores source, prompt, output, and terminal content. | 8 | Pass |
@@ -42,6 +42,8 @@ Audited August 29, 2026. Labels, actions, headings, captions, and sentences that
 | Restore a license | 3 | Pass |
 | DESKTOP APP | 2 | Pass |
 | Install for your platform | 4 | Pass |
+| Current macOS and Windows builds are unsigned. | 7 | Pass; tested release state |
+| Read the install steps before downloading. | 6 | Pass |
 | Check GitHub Releases for available downloads. | 6 | Pass |
 | Check download for your platform | 5 | Pass |
 | View all releases | 3 | Pass |

@@ -1,7 +1,10 @@
 {
   "name": "worktree-agent-pulse",
   "private": true,
-  "version": "0.1.6",
+  "version": "0.1.7",
+  "engines": {
+    "node": ">=22"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -13,13 +16,16 @@
     "test:e2e": "playwright test",
     "test:checkout": "node scripts/verify-checkout.mjs",
     "test:release-provenance": "node scripts/verify-release-provenance.mjs",
+    "test:build-output": "node scripts/verify-build-output.mjs",
+    "test:signing-status": "node scripts/verify-signing-status.mjs",
     "preview": "vite preview --host 0.0.0.0"
   },
   "dependencies": {
     "@fontsource-variable/space-grotesk": "5.2.10",
     "@fontsource/ibm-plex-mono": "5.2.7",
     "@tauri-apps/api": "2.11.1",
-    "@tauri-apps/plugin-dialog": "2.7.2"
+    "@tauri-apps/plugin-dialog": "2.7.2",
+    "@tauri-apps/plugin-notification": "2.3.3"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.10.2",

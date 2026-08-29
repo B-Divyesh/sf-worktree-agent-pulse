@@ -24,7 +24,7 @@ body { margin: 0; min-width: 320px; min-height: 100vh; background: var(--ink-0);
 body::before { content: ""; position: fixed; inset: 0; pointer-events: none; opacity: .15; background-image: linear-gradient(rgba(124,247,196,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(124,247,196,.06) 1px, transparent 1px); background-size: 48px 48px; mask-image: linear-gradient(to bottom, black, transparent 72%); }
 button, input { font: inherit; }
 button, a { -webkit-tap-highlight-color: transparent; }
-a { color: var(--blue); text-underline-offset: 4px; }
+a { display: inline-flex; min-width: 44px; min-height: 44px; align-items: center; color: var(--blue); text-underline-offset: 4px; }
 a:hover { color: var(--paper); }
 button { color: inherit; }
 img { display: block; max-width: 100%; }
@@ -44,7 +44,7 @@ h1:focus { outline: none; }
 .wordmark strong { color: var(--pulse); font-weight: 650; }
 .wordmark svg { width: 42px; height: 32px; fill: var(--coral); stroke: var(--pulse); stroke-width: 2; }
 .site-header nav, .site-footer nav { display: flex; gap: clamp(16px, 3vw, 36px); }
-.site-header nav a, .site-footer a, .site-footer nav > span { color: var(--mist); font-size: .88rem; font-weight: 550; text-decoration: none; }
+.site-header nav a, .site-footer a, .site-footer nav > span { justify-content: center; padding: 8px 4px; color: var(--mist); font-size: .88rem; font-weight: 550; text-decoration: none; }
 .site-header nav a:hover, .site-footer a:hover { color: var(--paper); }
 
 .hero { position: relative; display: grid; grid-template-columns: minmax(0, .9fr) minmax(480px, 1.1fr); min-height: calc(100svh - 80px); overflow: hidden; border-bottom: 1px solid var(--line); }
@@ -132,7 +132,7 @@ button.worktree-row:hover, .worktree-row.selected { background: var(--ink-2); }
 .demo-banner { position: relative; z-index: 30; display: flex; min-height: 48px; align-items: center; justify-content: space-between; gap: 16px; padding: 7px clamp(16px, 4vw, 52px); background: var(--amber); color: #171000; font-size: .83rem; }
 .demo-banner div { display: flex; align-items: center; gap: 18px; }
 .demo-banner button { min-height: 44px; padding: 8px 12px; border: 1px solid #171000; background: transparent; color: #171000; cursor: pointer; }
-.demo-banner a { color: #171000; font-weight: 650; }
+.demo-banner a { justify-content: center; padding: 8px 4px; color: #171000; font-weight: 650; }
 .app-shell { min-height: 100vh; }
 .app-header { min-height: 72px; }
 .app-actions { display: flex; gap: 10px; }
@@ -142,7 +142,7 @@ button.worktree-row:hover, .worktree-row.selected { background: var(--ink-2); }
 .demo-nav a { min-height: 44px; padding: 8px 10px; color: var(--mist); font-size: .82rem; }
 .app-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px clamp(16px, 4vw, 52px); border-top: 1px solid var(--line); color: var(--mist); font-size: .8rem; }
 .app-footer nav { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
-.app-footer a { color: var(--mist); }
+.app-footer a { justify-content: center; padding: 8px 4px; color: var(--mist); }
 .pulse-main { position: relative; max-width: 1480px; min-height: calc(100vh - 72px); margin: auto; padding: 48px clamp(20px, 4vw, 64px) 80px; }
 .pulse-heading { display: flex; align-items: end; justify-content: space-between; gap: 48px; margin-bottom: 42px; }
 .pulse-heading h1 { margin-bottom: 9px; font-size: clamp(2.5rem, 5vw, 5rem); }
@@ -166,12 +166,12 @@ button.worktree-row:hover, .worktree-row.selected { background: var(--ink-2); }
 .action-note { margin-top: 14px; color: var(--mist); font-size: .77rem; }
 .error-toast { position: fixed; z-index: 60; right: 20px; bottom: 20px; display: grid; grid-template-columns: 1fr auto; max-width: 440px; padding: 18px; border: 1px solid var(--coral); background: var(--ink-1); box-shadow: 0 12px 40px #000; }.error-toast span { grid-column: 1; color: var(--mist); font-size: .8rem; }.error-toast button { grid-column: 2; grid-row: 1/3; min-width: 44px; border: 0; background: none; cursor: pointer; }
 
-.native-empty, .legal-page, .not-found { min-height: calc(100vh - 80px); padding: clamp(64px, 12vw, 150px) clamp(24px, 12vw, 180px); }
+.native-empty, .legal-page, .not-found { min-width: 0; min-height: calc(100vh - 80px); padding: clamp(64px, 12vw, 150px) clamp(24px, 12vw, 180px); overflow-wrap: anywhere; }
 .native-empty { max-width: 980px; margin: auto; }.native-empty h1, .legal-page h1, .not-found h1 { font-size: clamp(2.8rem, 6vw, 5.5rem); }.native-empty > p:not(.eyebrow), .not-found > p, .legal-page > .lede { max-width: 660px; color: var(--mist); }.empty-actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 32px 0 16px; }.plain-note { font-size: .82rem; }.local-badge { color: var(--pulse); font-size: .68rem; }
 .empty-lattice { display: flex; gap: 32px; height: 60px; margin-bottom: 48px; }.empty-lattice i { position: relative; width: 12px; height: 12px; border: 2px solid var(--pulse); transform: rotate(45deg); }.empty-lattice i::after { content:""; position:absolute; left: 10px; top: 4px; width: 32px; border-top: 1px solid var(--line); transform: rotate(-45deg); transform-origin: left; }
 .legal-page { max-width: 1050px; }.legal-page section { max-width: 720px; }.legal-page h2 { margin-top: 48px; font-size: 1.6rem; }.legal-page p { color: var(--mist); }
 .not-found { text-align: center; }.not-found > * { margin-inline: auto; }.broken-rail { display:flex; justify-content:center; align-items:center; margin-bottom: 42px; }.broken-rail i { width: 120px; border-top: 3px solid var(--pulse); }.broken-rail b { display:grid; place-items:center; width:56px; height:56px; color:var(--coral); border:2px solid var(--coral); transform:rotate(45deg); }.broken-rail b::first-letter { transform:rotate(-45deg); }
-.dialog-backdrop { position: fixed; z-index: 80; inset: 0; display: grid; place-items: center; padding: 20px; background: rgba(0,0,0,.75); }.license-dialog { position: relative; width: min(520px, 100%); padding: 48px; border: 1px solid var(--pulse); background: var(--ink-1); }.license-dialog h2 { font-size: 2rem; }.license-dialog label { display: block; margin-bottom: 7px; }.license-dialog input { width: 100%; min-height: 48px; padding: 10px 12px; border: 1px solid var(--line); background: var(--ink-0); color: var(--paper); font-family: var(--mono); }.license-dialog [role="status"] { min-height: 42px; margin: 10px 0; color: var(--mist); font-size: .82rem; }
+.dialog-backdrop { position: fixed; z-index: 80; inset: 0; display: grid; place-items: center; padding: 20px; background: rgba(0,0,0,.75); }.license-dialog { position: relative; width: min(520px, 100%); padding: 48px; border: 1px solid var(--pulse); background: var(--ink-1); }.license-dialog h2 { font-size: 2rem; }.license-dialog label { display: block; margin-bottom: 7px; }.license-dialog input { width: 100%; min-height: 48px; padding: 10px 12px; border: 1px solid var(--line); background: var(--ink-0); color: var(--paper); font-family: var(--mono); }.license-dialog input[aria-invalid="true"] { border-color: var(--coral); outline-color: var(--coral); }.license-dialog [role="status"] { min-height: 42px; margin: 10px 0; color: var(--mist); font-size: .82rem; }
 
 @keyframes pulse-arrive { from { opacity: 0; transform: translateX(-22px) rotate(45deg); } to { opacity: 1; transform: translateX(0) rotate(45deg); } }
 @keyframes drawer-in { from { opacity: 0; transform: translateX(20px); } }
@@ -196,7 +196,7 @@ button.worktree-row:hover, .worktree-row.selected { background: var(--ink-2); }
   .limit-note { align-items: flex-start; flex-direction: column; }.limit-note .text-button { margin-left: 0; }
   .pulse-board { border-inline: 0; }.pulse-board .board-head { display: none; }.pulse-board .worktree-row { --columns: 1fr auto; grid-template-columns: var(--columns); gap: 6px 12px; min-height: 118px; padding: 15px 34px; }.pulse-board .agent-state { align-items: end; }.pulse-board .git-metrics { grid-column: 1 / -1; }.pulse-board .row-arrow { right: 10px; }.pulse-board .rail { left: 10px; }
   .pulse-board .branch, .pulse-board .agent-state, .pulse-board .agent-state small, .pulse-board .metric, .scan-time, .summary span { font-size: 17px; }
-  .license-dialog { padding: 54px 22px 28px; }.legal-page, .not-found, .native-empty { padding: 64px 20px; }
+  .license-dialog { padding: 54px 22px 28px; }.legal-page, .not-found, .native-empty { padding: 64px 20px; }.legal-page h1 { max-width: 100%; font-size: clamp(2rem, 11vw, 3.2rem); overflow-wrap: anywhere; }
 }
 
 @media (prefers-reduced-motion: reduce) {

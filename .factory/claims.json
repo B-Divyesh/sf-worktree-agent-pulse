@@ -8,7 +8,7 @@
   },
   {
     "id": "attention",
-    "claim": "Blocked, remote-behind, and changed worktrees appear before routine worktrees.",
+    "claim": "Worktrees with blocked agents, remote changes to pull, or local file changes appear before routine worktrees.",
     "where": "landing preview and demo board",
     "test": "npm run test:e2e -- --grep @claim:attention",
     "sandbox": "fresh browser context and bundled sample data; assert the complete deterministic attention order"
@@ -137,7 +137,7 @@
     "claim": "Remove repository forgets a saved path without changing repository files.",
     "where": "privacy page and desktop app",
     "test": "npm run test:unit -- -t @claim:repository-delete",
-    "sandbox": "save two local paths, remove one through the storage action, and assert only that saved path is gone"
+    "sandbox": "temporary Git repository with tracked and untracked canaries; remove its saved path; compare file bytes and Git status before and after"
   },
   {
     "id": "checkout-live",
@@ -152,5 +152,54 @@
     "where": "terms page and README privacy and billing section",
     "test": "npm run test:e2e -- --grep @claim:refund-contact",
     "sandbox": "fresh browser context; assert the Terms page exposes the exact mailto refund contact"
+  },
+  {
+    "id": "native-data-local",
+    "claim": "Repository paths and the license token persist locally; Git and status-file scan results stay in memory.",
+    "where": "privacy page and README",
+    "test": "npm run test:unit -- -t @claim:native-data-local",
+    "sandbox": "inspect production storage, scan state, and native dependencies; assert paths use the local namespace, board results are not persisted, and the native scanner has no network client"
+  },
+  {
+    "id": "status-values",
+    "claim": "Status files accept working, blocked, and idle; missing or unsupported states are not presented as agent state.",
+    "where": "README status-file documentation",
+    "test": "cargo test --manifest-path src-tauri/Cargo.toml claim_status_values -- --nocapture",
+    "sandbox": "temporary status files for every valid value plus invalid and missing states; invoke the native parser and compare serialized state"
+  },
+  {
+    "id": "node-setup",
+    "claim": "Development and release builds require Node.js 22 or newer.",
+    "where": "README setup instructions and package metadata",
+    "test": "npm run test:unit -- -t @claim:node-setup",
+    "sandbox": "fresh checkout; assert package engine, current runtime, and release workflow all use Node.js 22 or newer"
+  },
+  {
+    "id": "build-output",
+    "claim": "The site build writes a deployable site to dist/site within the JavaScript size budget.",
+    "where": "README test and build section",
+    "test": "npm run test:build-output",
+    "sandbox": "fresh checkout; run the production site build; assert dist/site HTML, JavaScript, and CSS exist and JavaScript is at most 200 KB"
+  },
+  {
+    "id": "release-workflow",
+    "claim": "Version tags build macOS, Windows, AppImage, and Debian desktop bundles in GitHub Actions.",
+    "where": "README test and build section",
+    "test": "npm run test:unit -- -t @claim:release-workflow",
+    "sandbox": "inspect the release workflow trigger and OS/architecture bundle matrix"
+  },
+  {
+    "id": "unsigned-builds",
+    "claim": "Current macOS and Windows builds are unsigned.",
+    "where": "landing download section and README install instructions",
+    "test": "npm run test:signing-status",
+    "sandbox": "current public release; require unsigned disclosure and runner-generated macOS/Windows signing evidence, with direct PE certificate inspection for older releases"
+  },
+  {
+    "id": "blocked-notifications",
+    "claim": "Optional local alerts report a worktree only when its agent changes into blocked state.",
+    "where": "desktop board and README",
+    "test": "npm run test:unit -- -t @claim:blocked-notifications",
+    "sandbox": "blocked-state transition fixture; assert one new transition, deduplication of existing blocked state, and opt-in default"
   }
 ]

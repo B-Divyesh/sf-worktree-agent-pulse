@@ -13,6 +13,7 @@ One-click demo: <https://worktree-agent-pulse.sociobot.in/demo>
 - Desktop downloads for macOS, Windows, and Linux
 - Read-only `git worktree list`, `git rev-parse`, and `git status` scans
 - Optional status files let each CLI agent report working, blocked, or idle
+- Optional local alerts report new blocked states without sending data away
 - A user-triggered action that opens the exact worktree in a terminal
 - A separate, offline-ready browser demo with five sample worktrees
 - Free monitoring for five worktrees
@@ -38,7 +39,9 @@ npm ci
 npm run tauri dev
 ```
 
-The app stores repository paths in local WebView storage. Use **Remove repository** in the desktop app to forget a saved path without changing repository files. Clearing browser/app storage also removes saved paths.
+The app stores repository paths on this device. Git and status-file results stay in memory and are rebuilt by local scans. Use **Remove repository** to forget a saved path without changing repository files. Clearing the app’s storage also removes saved paths.
+
+Choose **Enable blocked alerts** to request system notification permission. Pulse alerts only when an agent changes into blocked state. Selecting the alert opens that worktree. Alert text includes the worktree name and state, not repository content.
 
 ## Optional agent status file
 
@@ -78,9 +81,17 @@ irm https://worktree-agent-pulse.sociobot.in/install.ps1 | iex
 
 Choose the macOS, Windows, AppImage, or Debian package from the release page.
 
+### Install an unsigned build
+
+Current macOS and Windows builds are unsigned. Verify the file against `SHA256SUMS` on the release page before opening it.
+
+- macOS: open the DMG, drag Pulse to Applications, then Control-click Pulse and choose **Open**.
+- Windows: open the setup file, choose **More info**, confirm the checksum matches, then choose **Run anyway**.
+- Linux: make the AppImage executable, or install the Debian package with your package manager.
+
 ## Privacy and billing
 
-Repository paths and board state stay in local app storage. The public site contacts GitHub only after you request a download. License checkout and verification use `api.sociobot.in`; the license token stays in local storage. Verification runs at most once every 24 hours. Request a refund at <hello@sociobot.in>.
+Repository paths and your license token stay in local app storage. Git and status-file results stay in memory. The public site contacts GitHub only after you request a download. License checkout and verification use `api.sociobot.in`. Verification runs at most once every 24 hours. Request a refund at <hello@sociobot.in>.
 
 See `/privacy` and `/terms` on the site. The sample board works offline after its first visit.
 

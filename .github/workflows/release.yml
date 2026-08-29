@@ -22,15 +22,19 @@ jobs:
           - platform: ubuntu-latest
             args: "--bundles appimage,deb"
             rust_target: ""
+            report_name: linux
           - platform: windows-latest
             args: "--bundles nsis"
             rust_target: ""
+            report_name: windows
           - platform: macos-latest
             args: "--target aarch64-apple-darwin --bundles dmg"
             rust_target: "aarch64-apple-darwin"
+            report_name: macos-arm64
           - platform: macos-latest
             args: "--target x86_64-apple-darwin --bundles dmg"
             rust_target: "x86_64-apple-darwin"
+            report_name: macos-x64
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
@@ -56,10 +60,35 @@ jobs:
         with:
           tagName: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
           releaseName: "Worktree Agent Pulse ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}"
-          releaseBody: "Unsigned desktop builds for macOS, Windows, and Linux. See the README for install notes."
+          releaseBody: "Unsigned desktop builds for macOS, Windows, and Linux. See the README section ‘Install an unsigned build’ before downloading."
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
+      - name: Record macOS signing status
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          APP_PATH="$(find src-tauri/target -path '*/release/bundle/macos/*.app' -type d -print -quit)"
+          test -n "$APP_PATH"
+          if codesign -dv --verbose=4 "$APP_PATH" 2>&1 | grep -q 'Authority=Developer ID Application'; then SIGNED=true; else SIGNED=false; fi
+          printf '{"platform":"macos","architecture":"%s","signed":%s,"check":"codesign Developer ID authority"}\n' '${{ matrix.rust_target }}' "$SIGNED" > signing-${{ matrix.report_name }}.json
+      - name: Record Windows signing status
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $installer = Get-ChildItem src-tauri/target -Recurse -Filter *-setup.exe | Select-Object -First 1
+          if (-not $installer) { throw 'Windows installer was not found' }
+          $signature = Get-AuthenticodeSignature $installer.FullName
+          $signed = if ($signature.Status -eq 'Valid') { 'true' } else { 'false' }
+          "{`"platform`":`"windows`",`"signed`":$signed,`"check`":`"Get-AuthenticodeSignature: $($signature.Status)`"}" | Set-Content signing-windows.json
+      - name: Record Linux package status
+        if: runner.os == 'Linux'
+        shell: bash
+        run: printf '{"platform":"linux","signed":false,"check":"unsigned AppImage and Debian artifacts"}\n' > signing-linux.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: signing-${{ matrix.report_name }}
+          path: signing-${{ matrix.report_name }}.json
 
   checksums:
     needs: build
@@ -68,6 +97,8 @@ jobs:
       RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
       - name: Download release assets
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -78,9 +109,16 @@ jobs:
           find . -maxdepth 1 -type f ! -name 'SHA256SUMS' ! -name 'latest.json' -printf '%f\0' | sort -z | xargs -0 sha256sum > SHA256SUMS
           SOURCE_COMMIT="$(git -C .. rev-parse HEAD)"
           node ../scripts/release-manifest.mjs "$RELEASE_TAG" "${{ github.repository }}" "$SOURCE_COMMIT"
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: signing-*
+          path: signing-reports
+      - name: Publish signing evidence
+        run: node scripts/merge-signing-reports.mjs signing-reports
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.RELEASE_TAG }}
           files: |
             release-assets/SHA256SUMS
             release-assets/latest.json
+            release-assets/signing-status.json

@@ -5,6 +5,37 @@ import { spawnSync } from "node:child_process";
 import { describe, expect, it } from "vitest";
 
 describe("desktop core contract", () => {
+  it("@claim:native-data-local keeps paths in local storage and scan results in memory", () => {
+    const storage = readFileSync("src/storage.ts", "utf8");
+    const webview = readFileSync("src/main.ts", "utf8");
+    const cargo = readFileSync("src-tauri/Cargo.toml", "utf8");
+    expect(storage).toContain('const REAL_KEY = "pulse:repositories"');
+    expect(storage).not.toMatch(/board|worktrees|git.state/i);
+    expect(webview).toContain("let repository: RepositoryPulse | null = null");
+    expect(webview).not.toMatch(/localStorage\.setItem\([^\n]*repository/i);
+    expect(cargo).not.toMatch(/reqwest|ureq|hyper\s*=/i);
+  });
+
+  it("@claim:node-setup enforces Node.js 22 in package metadata and release builds", () => {
+    const pkg = JSON.parse(readFileSync("package.json", "utf8"));
+    const workflow = readFileSync(".github/workflows/release.yml", "utf8");
+    expect(pkg.engines.node).toBe(">=22");
+    expect(workflow).toContain("node-version: 22");
+    expect(Number(process.versions.node.split(".")[0])).toBeGreaterThanOrEqual(22);
+  });
+
+  it("@claim:release-workflow builds every advertised desktop bundle on version tags", () => {
+    const workflow = readFileSync(".github/workflows/release.yml", "utf8");
+    expect(workflow).toContain('tags: ["v*"]');
+    expect(workflow).toContain("ubuntu-latest");
+    expect(workflow).toContain("windows-latest");
+    expect(workflow.match(/macos-latest/g)).toHaveLength(2);
+    expect(workflow).toContain('"--bundles appimage,deb"');
+    expect(workflow).toContain('"--bundles nsis"');
+    expect(workflow).toContain('"aarch64-apple-darwin"');
+    expect(workflow).toContain('"x86_64-apple-darwin"');
+  });
+
   it("uses the expected read-only Git commands and adapter path", () => {
     const source = readFileSync("src-tauri/src/lib.rs", "utf8");
     expect(source).toContain('["rev-parse", "--show-toplevel"]');
@@ -83,5 +114,21 @@ describe("desktop core contract", () => {
     expect(webview).toContain('if (!isNative || isSampleProject)');
     expect(config.responseOverrides["404"]).toEqual({ rewrite: "/404.html", statusCode: 404 });
     expect(config.routes.slice(0, 3).map((route) => route.route)).toEqual(["/demo", "/privacy", "/terms"]);
+  });
+
+  it("lists every declared claim exactly once in an executable test or verifier", () => {
+    const claims = JSON.parse(readFileSync(".factory/claims.json", "utf8"));
+    const sources = [
+      ...["tests/e2e/claims.spec.ts", "tests/unit/core-contract.test.js", "tests/unit/license.test.ts", "tests/unit/pro.test.ts", "tests/unit/release.test.ts", "tests/unit/storage.test.ts", "tests/unit/notifications.test.ts"].map((path) => readFileSync(path, "utf8")),
+      readFileSync("src-tauri/src/lib.rs", "utf8"),
+      readFileSync("scripts/verify-checkout.mjs", "utf8"),
+      readFileSync("scripts/verify-release-provenance.mjs", "utf8"),
+      readFileSync("scripts/verify-build-output.mjs", "utf8"),
+      readFileSync("scripts/verify-signing-status.mjs", "utf8"),
+    ].join("\n");
+    for (const { id } of claims) {
+      const tag = `@claim:${id}`;
+      expect(sources.split(tag).length - 1, `${tag} occurs exactly once`).toBe(1);
+    }
   });
 });

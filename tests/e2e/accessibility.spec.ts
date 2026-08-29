@@ -16,16 +16,21 @@ test("keyboard opens and closes worktree details", async ({ page }) => {
   const first = page.locator("[data-worktree]").first();
   await first.focus();
   await page.keyboard.press("Enter");
-  await expect(page.getByRole("heading", { name: "checkout-retry" })).toBeVisible();
+  const heading = page.getByRole("heading", { name: "checkout-retry" });
+  await expect(heading).toBeVisible();
+  await expect(heading).toBeFocused();
+  const drawerResults = await new AxeBuilder({ page: page as never }).include(".detail-panel").analyze();
+  expect(drawerResults.violations.filter((violation) => ["serious", "critical"].includes(violation.impact ?? ""))).toEqual([]);
   await page.keyboard.press("Escape");
   await expect(page.locator(".detail-panel")).toHaveCount(0);
+  await expect(first).toBeFocused();
 });
 
 test("demo keeps legal navigation and sample semantics visible", async ({ page }) => {
   await page.goto("/?demo=1");
   await expect(page.getByRole("link", { name: "Privacy" }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: "Terms" }).first()).toBeVisible();
-  await expect(page.getByText("Built by Param Factory · v0.1.6")).toBeVisible();
+  await expect(page.getByText("Built by Param Factory · v0.1.7")).toBeVisible();
   await expect(page.getByText("Sample snapshot · no Git scan ran")).toBeVisible();
   await expect(page).toHaveTitle("Demo — Worktree Agent Pulse");
 });
@@ -70,6 +75,51 @@ test("mobile controls have 44px touch targets on every public route", async ({ p
       expect(box?.height, `${route}: ${label} is at least 44px high`).toBeGreaterThanOrEqual(44);
     }
   }
+});
+
+test("desktop controls have 44px targets on every public route", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  for (const route of ["/", "/demo", "/privacy", "/terms", "/missing"]) {
+    await page.goto(route);
+    const controls = page.locator("a, button");
+    for (let index = 0; index < await controls.count(); index += 1) {
+      const control = controls.nth(index);
+      if (!await control.isVisible()) continue;
+      const box = await control.boundingBox();
+      const label = (await control.innerText()).trim().replace(/\s+/g, " ") || await control.getAttribute("aria-label") || `control ${index}`;
+      expect(box?.width, `${route}: ${label} is at least 44px wide`).toBeGreaterThanOrEqual(44);
+      expect(box?.height, `${route}: ${label} is at least 44px high`).toBeGreaterThanOrEqual(44);
+    }
+  }
+});
+
+test("privacy reflows at 200 percent text on a 390px viewport", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/privacy");
+  await page.addStyleTag({ content: ":root { font-size: 200% !important; }" });
+  expect(await page.evaluate(() => ({ document: document.documentElement.scrollWidth, viewport: innerWidth }))).toEqual({ document: 390, viewport: 390 });
+  const heading = page.getByRole("heading", { level: 1 });
+  expect(await heading.evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true);
+});
+
+test("empty license validation explains the error and focuses the field", async ({ page }) => {
+  const requests: string[] = [];
+  page.on("request", (request) => { if (request.url().includes("/verify?license=")) requests.push(request.url()); });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Restore a license" }).click();
+  await page.getByRole("button", { name: "Verify license" }).click();
+  const input = page.getByLabel("License token");
+  await expect(input).toBeFocused();
+  await expect(input).toHaveAttribute("aria-invalid", "true");
+  await expect(page.getByText("Enter the license token from your purchase email.")).toBeVisible();
+  expect(requests).toEqual([]);
+});
+
+test("terminal preview gives a visible result", async ({ page }) => {
+  await page.goto("/demo");
+  await page.locator('[data-worktree="wt-checkout"]').click();
+  await page.getByRole("button", { name: "Preview terminal action" }).click();
+  await expect(page.locator(".action-note")).toHaveText("Installed Pulse would open /Users/mira/Code/northstar-checkout-retry in your terminal.");
 });
 
 test("mobile board keeps operational data at the 17px text floor", async ({ page }) => {

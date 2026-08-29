@@ -58,3 +58,4 @@ for (const platform of required) {
 }
 
 console.log(`Verified ${tag}: source ${sourceCommit} and five checksummed desktop artifacts.`);
+// @claim:release-source-provenance

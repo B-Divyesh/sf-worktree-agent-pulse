@@ -122,7 +122,7 @@ fn read_adapter(path: &Path) -> (String, String, Option<String>) {
     let state = status
         .state
         .filter(|value| matches!(value.as_str(), "working" | "blocked" | "idle"))
-        .unwrap_or_else(|| "idle".into());
+        .unwrap_or_else(|| "none".into());
     (
         status.agent.unwrap_or_else(|| "Agent adapter".into()),
         state,
@@ -262,6 +262,7 @@ fn open_terminal(path: String) -> Result<(), String> {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_notification::init())
         .setup(|app| {
             let show = MenuItem::with_id(app, "show", "Show Pulse", true, None::<&str>)?;
             let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
@@ -439,6 +440,29 @@ mod tests {
             fs::read_to_string(root.join("terminal-output.log")).unwrap(),
             output_canary
         );
+
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    /// @claim:status-values
+    #[test]
+    fn claim_status_values_accepts_only_the_documented_states() {
+        let unique = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos();
+        let root = std::env::temp_dir().join(format!("pulse-status-values-{unique}"));
+        let status_dir = root.join(".worktree-agent-pulse");
+        fs::create_dir_all(&status_dir).unwrap();
+        let status_file = status_dir.join("status.json");
+
+        for expected in ["working", "blocked", "idle"] {
+            fs::write(&status_file, format!(r#"{{"agent":"Fixture","state":"{expected}"}}"#)).unwrap();
+            assert_eq!(read_adapter(&root).1, expected);
+        }
+        fs::write(&status_file, r#"{"agent":"Fixture","state":"waiting"}"#).unwrap();
+        assert_eq!(read_adapter(&root).1, "none");
+        fs::write(&status_file, r#"{"agent":"Fixture"}"#).unwrap();
+        assert_eq!(read_adapter(&root).1, "none");
+        fs::remove_file(&status_file).unwrap();
+        assert_eq!(read_adapter(&root).1, "none");
 
         fs::remove_dir_all(root).unwrap();
     }
