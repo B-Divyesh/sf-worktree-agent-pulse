@@ -23,14 +23,14 @@ let isPro = hasCachedLicense();
 let isSampleProject = false;
 
 const titles: Record<string, string> = {
-  "/": "Worktree Agent Pulse — See worktree risk",
+  "/": "Worktree Agent Pulse — Monitor worktrees",
   "/demo": "Demo — Worktree Agent Pulse",
   "/privacy": "Privacy — Worktree Agent Pulse",
   "/terms": "Terms — Worktree Agent Pulse",
 };
 
 const descriptions: Record<string, string> = {
-  "/": "See blocked coding agents and unsafe Git worktrees in one private desktop board.",
+  "/": "See blocked agents and worktrees that need attention in one private desktop board.",
   "/demo": "Try a private sample board with five realistic Git worktrees and agent states.",
   "/privacy": "Learn what Worktree Agent Pulse reads, stores, and sends.",
   "/terms": "Read the license and purchase terms for Worktree Agent Pulse.",
@@ -63,7 +63,7 @@ function header(): string {
 
 function footer(): string {
   return `<footer class="site-footer">
-    <p>See blocked agents and unsafe worktrees in one local board.</p>
+    <p>See blocked agents and worktrees that need attention in one local board.</p>
     <nav aria-label="Footer"><a href="/privacy" data-route>Privacy</a><a href="/terms" data-route>Terms</a><span>Built by Param Factory</span></nav>
     <p class="build-id">v0.1.5 · Generated artwork disclosed</p>
   </footer>`;
@@ -78,6 +78,18 @@ function statusLabel(item: WorktreePulse): string {
 
 function needsAttention(item: WorktreePulse): boolean {
   return item.agentState === "blocked" || item.dirty > 0 || item.behind > 0;
+}
+
+/** Attention is a stable operational order: blocked, behind, changed, then routine. */
+function attentionRank(item: WorktreePulse): number {
+  if (item.agentState === "blocked") return 0;
+  if (item.behind > 0) return 1;
+  if (item.dirty > 0) return 2;
+  return 3;
+}
+
+function orderWorktrees(items: WorktreePulse[]): WorktreePulse[] {
+  return [...items].sort((left, right) => attentionRank(left) - attentionRank(right) || left.name.localeCompare(right.name));
 }
 
 function filterItems(items: WorktreePulse[]): WorktreePulse[] {
@@ -105,10 +117,10 @@ function row(item: WorktreePulse, preview = false): string {
 
 function miniDashboard(): string {
   return `<div class="mini-window" role="region" aria-label="Example pulse board with five worktrees" tabindex="0">
-    <div class="window-bar"><span></span><span></span><span></span><strong>NORTHSTAR / 5 WORKTREES</strong><em>SCANNED NOW</em></div>
+    <div class="window-bar"><span></span><span></span><span></span><strong>NORTHSTAR / 5 WORKTREES</strong><em>SAMPLE SNAPSHOT</em></div>
     <div class="mini-body">
       <div class="board-head"><span>WORKTREE</span><span>AGENT</span><span>GIT STATE</span></div>
-      ${SAMPLE_REPOSITORY.worktrees.map((item) => row(item, true)).join("")}
+      ${orderWorktrees(SAMPLE_REPOSITORY.worktrees).map((item) => row(item, true)).join("")}
     </div>
   </div>`;
 }
@@ -122,9 +134,9 @@ function landing(): string {
   return `${header()}<main id="main">
     <section class="hero">
       <div class="hero-copy">
-        <p class="eyebrow">LOCAL WORKTREE MONITOR / 01</p>
-        <h1 tabindex="-1">Catch blocked agents before branches drift</h1>
-        <p class="lede">For developers running several CLI agents who need one view of worktree activity and Git risk.</p>
+        <p class="eyebrow">LOCAL DESKTOP APP</p>
+        <h1 tabindex="-1">See blocked agents and worktrees that need attention</h1>
+        <p class="lede">For developers running several CLI agents who need one view of worktree activity and Git state.</p>
         <div class="hero-actions">
           <a class="button primary" href="/demo" data-route>Try it with sample data</a>
           <span>Loads five worktrees. Nothing is saved.</span>
@@ -137,29 +149,34 @@ function landing(): string {
       </div>
       <figure class="hero-art">
         <picture><img src="/assets/hero-lattice.webp" width="1536" height="1024" alt="Five geometric branch rails show active, warning, and blocked worktrees." fetchpriority="high" decoding="async"></picture>
-        <figcaption>Five rails. One blocked agent. One glance.</figcaption>
+        <figcaption>Preview: five worktrees, including one blocked agent.</figcaption>
       </figure>
     </section>
 
     <section class="product-preview" aria-labelledby="preview-title">
       <div class="section-index"><span>02</span><p>THE BOARD</p></div>
-      <div class="section-content"><h2 id="preview-title">Scan worktrees by urgency</h2><p>Blocked agents and dirty branches rise above routine activity.</p>${miniDashboard()}</div>
+      <div class="section-content"><h2 id="preview-title">See worktrees in attention order</h2><p>Blocked worktrees, remote-behind worktrees, and changed worktrees appear before routine worktrees.</p>${miniDashboard()}</div>
     </section>
 
     <section id="how" class="how-section" aria-labelledby="how-title">
       <div class="section-index"><span>03</span><p>HOW IT WORKS</p></div>
-      <div class="section-content"><h2 id="how-title">Keep your terminal. Add one view.</h2>
+      <div class="section-content"><h2 id="how-title">Monitor and open worktrees in three steps</h2>
         <ol class="steps">
           <li><span>01</span><div><h3>Add a repository</h3><p>Pulse asks Git for its linked worktrees.</p></div></li>
           <li><span>02</span><div><h3>Opt in agent status</h3><p>Your CLI writes state, tool name, and time. Prompt and output fields are ignored.</p></div></li>
           <li><span>03</span><div><h3>Open the right terminal</h3><p>Select a row to open that exact worktree.</p></div></li>
         </ol>
+        <div class="walkthrough" aria-label="Desktop app walkthrough">
+          <figure><img src="/assets/walkthrough-add-repository.png" width="960" height="600" alt="Worktree Agent Pulse first-run screen with Add a repository and Load sample project actions."><figcaption>1. Add a repository from the first-run screen.</figcaption></figure>
+          <figure><img src="/assets/walkthrough-inspect.png" width="960" height="600" alt="Worktree Agent Pulse board shows a blocked checkout-retry worktree and changed files."><figcaption>2. Inspect a blocked or changed worktree.</figcaption></figure>
+          <figure><img src="/assets/walkthrough-terminal.png" width="960" height="600" alt="Worktree Agent Pulse detail drawer shows the selected worktree and Open this terminal action."><figcaption>3. Open the selected worktree in your terminal.</figcaption></figure>
+        </div>
       </div>
     </section>
 
     <section class="privacy-section" aria-labelledby="private-title">
       <div class="section-index"><span>04</span><p>BOUNDARIES</p></div>
-      <div class="section-content"><h2 id="private-title">Your code is not the product</h2><p>Pulse reads Git metadata and three adapter fields. It ignores source, prompt, output, and terminal content. Scans do not change Git state.</p><a href="/privacy" data-route>Read the privacy details →</a></div>
+      <div class="section-content"><h2 id="private-title">What Pulse reads and ignores</h2><p>Pulse reads Git metadata and three status-file fields. It ignores source, prompt, output, and terminal content. Scans do not change Git state.</p><a href="/privacy" data-route>Read the privacy details →</a></div>
     </section>
 
     <section class="price-section" aria-labelledby="price-title">
@@ -172,7 +189,7 @@ function landing(): string {
 
     <section class="download-section" aria-labelledby="download-title">
       <div class="section-index"><span>06</span><p>DESKTOP APP</p></div>
-      <div class="section-content"><h2 id="download-title">Install for ${platformName(platform)}</h2><p class="download-status" id="download-status">Downloads are published through GitHub Releases.</p><div class="download-actions"><button class="button secondary" id="download-button" type="button">Check download for ${platformName(platform)}</button><a href="${releasesUrl}" target="_blank" rel="noreferrer">View all releases <span class="sr-only">(opens in a new tab)</span></a></div><p class="signing-note">Early builds are unsigned. Your system may ask you to confirm the app.</p></div>
+      <div class="section-content"><h2 id="download-title">Install for ${platformName(platform)}</h2><p class="download-status" id="download-status">Check GitHub Releases for available downloads.</p><div class="download-actions"><button class="button secondary" id="download-button" type="button">Check download for ${platformName(platform)}</button><a href="${releasesUrl}" target="_blank" rel="noreferrer">View all releases <span class="sr-only">(opens in a new tab)</span></a></div></div>
     </section>
   </main>${footer()}<div id="dialog-root"></div>`;
 }
@@ -181,7 +198,7 @@ function dashboard(mode: "demo" | "native"): string {
   const source = repository ?? SAMPLE_REPOSITORY;
   const isLimited = mode === "native" && !isPro && source.worktrees.length > FREE_WORKTREE_LIMIT;
   const data = isLimited ? { ...source, worktrees: worktreesForLicense(source.worktrees, false) } : source;
-  const visible = filterItems(data.worktrees);
+  const visible = orderWorktrees(filterItems(data.worktrees));
   const blocked = data.worktrees.filter((item) => item.agentState === "blocked").length;
   const risky = data.worktrees.filter(needsAttention).length;
   const selected = data.worktrees.find((item) => item.id === selectedId);
@@ -189,9 +206,10 @@ function dashboard(mode: "demo" | "native"): string {
     ? `<aside class="demo-banner"><strong>Demo — sample data, nothing is saved</strong><div><button id="reset-demo" type="button">Reset demo</button><a href="/" data-route>Start for real</a></div></aside>`
     : isSampleProject ? `<aside class="demo-banner native-sample"><strong>Preview — sample worktrees are not folders on this device</strong><div><button id="leave-sample" type="button">Add a real repository</button></div></aside>` : "";
   return `${banner}<div class="app-shell">
+    ${mode === "demo" ? `<a class="skip-link" href="#main">Skip to content</a>` : ""}
     <header class="app-header">
       <a class="wordmark" href="${mode === "demo" ? "/" : "#"}" ${mode === "demo" ? "data-route" : ""} aria-label="Worktree Agent Pulse home"><svg aria-hidden="true" viewBox="0 0 42 32"><path d="M3 6h10v8h8V6h10M13 14v12h18"/><rect x="1" y="4" width="5" height="5"/><rect x="29" y="23" width="5" height="5"/></svg><span>WORKTREE<br><strong>AGENT PULSE</strong></span></a>
-      <div class="app-actions"><button id="refresh" type="button">↻ <span>Refresh</span></button>${mode === "native" ? `<button class="app-license" type="button">License</button>${!isSampleProject ? `<button id="remove-repository" type="button">Remove repository</button>` : ""}<button id="add-repository" class="primary compact" type="button">+ Add repository</button>` : ""}</div>
+      <div class="app-actions"><button id="refresh" type="button">↻ <span>Refresh</span></button>${mode === "native" ? `<button class="app-license" type="button">License</button>${!isSampleProject ? `<button id="remove-repository" type="button">Remove repository</button>` : ""}<button id="add-repository" class="primary compact" type="button">+ Add repository</button>` : `<nav class="demo-nav" aria-label="Demo navigation"><a href="/privacy" data-route>Privacy</a><a href="/terms" data-route>Terms</a></nav>`}</div>
     </header>
     <main id="main" class="pulse-main">
       <section class="pulse-heading">
@@ -207,8 +225,9 @@ function dashboard(mode: "demo" | "native"): string {
         <div class="worktree-list">${visible.length ? visible.map((item) => row(item)).join("") : `<div class="empty-state"><strong>No worktrees match this filter.</strong><p>Choose another filter to see your worktrees.</p></div>`}</div>
       </section>
       ${selected ? detailPanel(selected, mode) : ""}
-      <p class="scan-time" role="status">Last scan: just now · Git reads only</p>
+      <p class="scan-time" role="status">${mode === "demo" || isSampleProject ? "Sample snapshot · no Git scan ran" : "Last scan: just now · Git reads only"}</p>
     </main>
+    ${mode === "demo" ? `<footer class="app-footer"><span>Demo sample data stays separate from real data.</span><nav aria-label="Demo footer"><a href="/privacy" data-route>Privacy</a><a href="/terms" data-route>Terms</a><span>Built by Param Factory · v0.1.5</span></nav></footer>` : ""}
   </div><div class="live-region sr-only" aria-live="polite"></div><div id="dialog-root"></div>`;
 }
 
@@ -231,13 +250,13 @@ function detailPanel(item: WorktreePulse, mode: "demo" | "native"): string {
 
 function legalPage(kind: "privacy" | "terms"): string {
   const privacy = kind === "privacy";
-  return `${header()}<main id="main" class="legal-page"><p class="eyebrow">POLICY / ${privacy ? "PRIVACY" : "TERMS"}</p><h1 tabindex="-1">${privacy ? "Your repository data stays local" : "Terms for using Pulse"}</h1><p class="lede">Effective August 28, 2026</p>
-    ${privacy ? `<section><h2>What the app reads</h2><p>The desktop app reads Git worktree metadata. It reads adapter files only after you add a repository. Only state, tool name, and time enter the board.</p><h2>What stays on your device</h2><p>Repository paths, Git state, adapter state, and your license token stay in local app storage. Pulse includes no analytics or crash tracking.</p><h2>Network requests</h2><p>The site checks GitHub only when you request a download. License purchase and verification use the Sociobot billing API. Git scanning uses local commands.</p><h2>Delete your data</h2><p>Use Remove repository in the desktop app to forget a saved path. It does not change repository files. You can also clear the app’s local storage. Demo data uses separate session storage and disappears when the session ends.</p>` : `<section><h2>License</h2><p>The free edition shows up to five worktrees. A $19 one-time Pulse Pro license shows every worktree and adds 10-second refresh.</p><h2>Payment and refunds</h2><p>Sociobot and Dodo handle checkout and refunds. A refunded license stops verifying.</p><h2>Safe use</h2><p>Pulse reports Git metadata but cannot guarantee branch safety. Check your repository before deleting, rebasing, or merging work.</p><h2>Warranty</h2><p>The software is provided under the MIT License without warranty. You remain responsible for your repositories and agent processes.</p>`}
+  return `${header()}<main id="main" class="legal-page"><p class="eyebrow">POLICY / ${privacy ? "PRIVACY" : "TERMS"}</p><h1 tabindex="-1">${privacy ? "Your repository data stays local" : "Terms for using Pulse"}</h1><p class="lede">Effective August 29, 2026</p>
+    ${privacy ? `<section><h2>What the app reads</h2><p>The desktop app reads Git worktree metadata. It reads status files only after you add a repository. Only state, tool name, and time enter the board.</p><h2>What stays on your device</h2><p>Repository paths, Git state, status-file state, and your license token stay in local app storage. Pulse includes no analytics or crash tracking.</p><h2>Network requests</h2><p>The site checks GitHub only when you request a download. License purchase and verification use the Sociobot billing API. Git scanning uses local commands.</p><h2>Delete your data</h2><p>Use Remove repository in the desktop app to forget a saved path. It does not change repository files. You can also clear the app’s local storage. Demo data uses separate session storage and disappears when the session ends.</p>` : `<section><h2>License</h2><p>The free edition shows up to five worktrees. A $19 one-time Pulse Pro license shows every worktree and adds 10-second refresh.</p><h2>Payment and refunds</h2><p>Request a refund by emailing <a href="mailto:hello@sociobot.in?subject=Pulse%20refund%20request">hello@sociobot.in</a>. Sociobot and Dodo process checkout.</p><h2>Safe use</h2><p>Pulse reports Git metadata but cannot guarantee branch safety. Check your repository before deleting, rebasing, or merging work.</p><h2>Warranty</h2><p>The software is provided under the MIT License without warranty. You remain responsible for your repositories and agent processes.</p>`}
     <h2>Contact</h2><p>Email <a href="mailto:hello@sociobot.in">hello@sociobot.in</a> with questions.</p></section></main>${footer()}`;
 }
 
 function notFound(): string {
-  return `${header()}<main id="main" class="not-found"><div class="broken-rail" aria-hidden="true"><i></i><b>×</b><i></i></div><p class="eyebrow">404 / DETACHED</p><h1 tabindex="-1">This branch ends here</h1><p>The page does not exist. Return to the pulse board.</p><a class="button primary" href="/" data-route>Return home</a></main>${footer()}`;
+  return `${header()}<main id="main" class="not-found"><div class="broken-rail" aria-hidden="true"><i></i><b>×</b><i></i></div><p class="eyebrow">404 / MISSING PAGE</p><h1 tabindex="-1">This page does not exist</h1><p>The page does not exist. Return to the pulse board.</p><a class="button primary" href="/" data-route>Return home</a></main>${footer()}`;
 }
 
 function nativeEmpty(): string {
@@ -251,24 +270,26 @@ function headerWordmark(): string {
 function render(): void {
   captureReturnedLicense();
   const path = window.location.pathname.replace(/\/+$/, "") || "/";
-  if (!isNative && path !== "/demo") clearDemo();
+  const demoQuery = new URLSearchParams(window.location.search).get("demo") === "1";
+  const demoMode = path === "/demo" || (path === "/" && demoQuery);
+  if (!isNative && !demoMode) clearDemo();
   let html: string;
   if (isNative) html = repository ? dashboard("native") : nativeEmpty();
-  else if (path === "/") html = landing();
-  else if (path === "/demo") {
+  else if (demoMode) {
     repository = getDemoRepository(SAMPLE_REPOSITORY);
     html = dashboard("demo");
-  } else if (path === "/privacy" || path === "/terms") html = legalPage(path.slice(1) as "privacy" | "terms");
+  } else if (path === "/") html = landing();
+  else if (path === "/privacy" || path === "/terms") html = legalPage(path.slice(1) as "privacy" | "terms");
   else html = notFound();
-  const title = isNative ? "Worktree Agent Pulse" : (titles[path] ?? "Page not found — Worktree Agent Pulse");
-  const description = descriptions[path] ?? "Return to the Worktree Agent Pulse home page.";
+  const title = isNative ? "Worktree Agent Pulse" : (demoMode ? titles["/demo"] : titles[path] ?? "Page not found — Worktree Agent Pulse");
+  const description = demoMode ? descriptions["/demo"] : descriptions[path] ?? "Return to the Worktree Agent Pulse home page.";
   document.title = title;
   document.querySelector<HTMLMetaElement>('meta[name="description"]')?.setAttribute("content", description);
   document.querySelector<HTMLMetaElement>('meta[property="og:title"]')?.setAttribute("content", title);
   document.querySelector<HTMLMetaElement>('meta[property="og:description"]')?.setAttribute("content", description);
   document.querySelector<HTMLMetaElement>('meta[name="twitter:title"]')?.setAttribute("content", title);
   document.querySelector<HTMLMetaElement>('meta[name="twitter:description"]')?.setAttribute("content", description);
-  document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.setAttribute("href", `https://worktree-agent-pulse.sociobot.in${path}`);
+  document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.setAttribute("href", `https://worktree-agent-pulse.sociobot.in${demoMode ? "/demo" : path}`);
   app.innerHTML = html;
   const announcer = document.querySelector<HTMLElement>("#route-announcer, .live-region");
   if (announcer) announcer.textContent = title;

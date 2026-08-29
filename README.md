@@ -1,6 +1,6 @@
 # Worktree Agent Pulse
 
-See blocked coding agents and unsafe Git worktrees in one local desktop board.
+See blocked agents and worktrees that need attention in one local desktop board.
 
 Pulse is for solo developers and tiny teams running several CLI agents in Git worktrees. It discovers linked worktrees, reads Git status, shows opt-in agent state, and opens the selected worktree in a terminal. It ignores source, prompt, output, and terminal content. Scans do not run Git writes.
 
@@ -10,10 +10,9 @@ One-click demo: <https://worktree-agent-pulse.sociobot.in/demo>
 
 ## What ships
 
-- Tauri 2 desktop app for macOS, Windows, and Linux
+- Desktop downloads for macOS, Windows, and Linux
 - Read-only `git worktree list`, `git rev-parse`, and `git status` scans
-- Dirty, ahead, behind, detached, working, idle, and blocked states
-- Optional status-file adapters for any CLI agent
+- Optional status files let each CLI agent report working, blocked, or idle
 - A user-triggered action that opens the exact worktree in a terminal
 - A separate, offline-ready browser demo with five sample worktrees
 - Free monitoring for five worktrees
@@ -41,9 +40,9 @@ npm run tauri dev
 
 The app stores repository paths in local WebView storage. Use **Remove repository** in the desktop app to forget a saved path without changing repository files. Clearing browser/app storage also removes saved paths.
 
-## Agent adapter
+## Optional agent status file
 
-An adapter is opt-in. Create `.worktree-agent-pulse/status.json` inside a worktree:
+The status file is opt-in. Create `.worktree-agent-pulse/status.json` inside a worktree:
 
 ```json
 {
@@ -63,7 +62,7 @@ npm run build
 cargo test --manifest-path src-tauri/Cargo.toml
 ```
 
-`npm run build` writes the deployable site to `dist/site`. GitHub Actions builds desktop bundles when a `v*` tag is pushed. Release artifacts are unsigned until the operator adds platform certificates.
+`npm run build` writes the deployable site to `dist/site`. GitHub Actions builds desktop bundles when a `v*` tag is pushed.
 
 ## Install
 
@@ -77,11 +76,11 @@ curl -fsSL https://worktree-agent-pulse.sociobot.in/install.sh | sh
 irm https://worktree-agent-pulse.sociobot.in/install.ps1 | iex
 ```
 
-On macOS, right-click the unsigned app and choose **Open**. On Windows, confirm the unsigned publisher warning. Linux provides AppImage and Debian packages.
+Choose the macOS, Windows, AppImage, or Debian package from the release page.
 
 ## Privacy and billing
 
-Repository paths and board state stay in local app storage. The public site contacts GitHub only after you request a download. License checkout and daily verification use `api.sociobot.in`; the license token stays in local storage. Sociobot and Dodo handle checkout and refunds.
+Repository paths and board state stay in local app storage. The public site contacts GitHub only after you request a download. License checkout and verification use `api.sociobot.in`; the license token stays in local storage. Verification runs at most once every 24 hours. Request a refund at <hello@sociobot.in>.
 
 See `/privacy` and `/terms` on the site. The sample board works offline after its first visit.
 

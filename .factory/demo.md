@@ -1,12 +1,13 @@
 # Demo contract
 
-- URL: `https://worktree-agent-pulse.sociobot.in/demo` or local `/demo`
+- URL: `https://worktree-agent-pulse.sociobot.in/demo`, local `/demo`, or `/?demo=1` for a direct isolated sample entry
 - Entry: choose **Try it with sample data** on the first screen
 - Sample: the `northstar` repository with five worktrees across Codex, Claude Code, Gemini CLI, OpenCode, and Git-only states
 - States covered: blocked, working, idle, dirty, clean, ahead, and behind
 - Storage namespace: `demo:worktree-agent-pulse:*` in `sessionStorage`
 - Reset: choose **Reset demo** in the persistent amber banner
 - Exit: choose **Start for real**; demo data is not copied into real storage
+- Demo status label: **Sample snapshot · no Git scan ran**; the bundled data is never presented as a live scan
 - Offline check: visit the demo once, then reload it without a network connection
 
 The desktop first-run **Load sample project** uses the same five-worktree

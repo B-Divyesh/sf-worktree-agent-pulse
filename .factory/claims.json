@@ -8,10 +8,10 @@
   },
   {
     "id": "attention",
-    "claim": "Blocked agents and dirty branches appear on the board.",
+    "claim": "Blocked, remote-behind, and changed worktrees appear before routine worktrees.",
     "where": "landing preview and demo board",
     "test": "npm run test:e2e -- --grep @claim:attention",
-    "sandbox": "fresh browser context and bundled sample data; assert blocked and changed states"
+    "sandbox": "fresh browser context and bundled sample data; assert the complete deterministic attention order"
   },
   {
     "id": "first-screen-demo",
@@ -77,11 +77,32 @@
     "sandbox": "fresh browser context with a returned fixture license and mocked Sociobot response; assert URL stripping, namespaced local storage, and the single allowed verification request"
   },
   {
+    "id": "license-daily",
+    "claim": "License verification runs at most once every 24 hours.",
+    "where": "README privacy and billing section",
+    "test": "npm run test:unit -- -t @claim:license-daily",
+    "sandbox": "fake clock and mocked Sociobot response; assert one request initially, none before 24 hours, and one at 24 hours"
+  },
+  {
     "id": "mac-download-architecture",
     "claim": "The download button selects the matching Intel or Apple silicon macOS build.",
     "where": "desktop download section",
     "test": "npm run test:e2e -- --grep @claim:mac-download-architecture",
     "sandbox": "mock GitHub release with both DMGs; use Intel and Apple silicon browser fixtures; assert each direct download URL"
+  },
+  {
+    "id": "release-available",
+    "claim": "The current GitHub release includes a checksum file.",
+    "where": "desktop download section and README",
+    "test": "npm run test:unit -- -t @claim:release-available",
+    "sandbox": "fresh checkout; request the public GitHub Releases API and assert the current release and SHA256SUMS are available"
+  },
+  {
+    "id": "platform-artifacts",
+    "claim": "The current GitHub release offers macOS, Windows, AppImage, and Debian downloads with checksums.",
+    "where": "README install section",
+    "test": "npm run test:unit -- -t @claim:platform-artifacts",
+    "sandbox": "fresh checkout; inspect current public release assets and SHA256SUMS for both macOS builds, Windows, AppImage, and Debian"
   },
   {
     "id": "exact-terminal-path",
@@ -117,5 +138,12 @@
     "where": "landing paid tier, terms, README",
     "test": "npm run test:checkout",
     "sandbox": "make one live request to the advertised Sociobot checkout URL; require HTTP 303 to an HTTPS checkout.dodopayments.com session"
+  },
+  {
+    "id": "refund-contact",
+    "claim": "Refund requests use the published Pulse support email.",
+    "where": "terms page and README privacy and billing section",
+    "test": "npm run test:e2e -- --grep @claim:refund-contact",
+    "sandbox": "fresh browser context; assert the Terms page exposes the exact mailto refund contact"
   }
 ]

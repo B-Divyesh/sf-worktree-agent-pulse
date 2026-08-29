@@ -9,5 +9,5 @@
   "monetization": "one-time",
   "constraints": "Opt-in adapters only; avoid capture of prompt/output content; protect repository paths; use Git read operations unless user triggers an action.",
   "state": "RESEARCHED",
-  "summary": "See blocked agents and unsafe Git worktrees in one local board."
+  "summary": "See blocked agents and worktrees that need attention in one local board."
 }

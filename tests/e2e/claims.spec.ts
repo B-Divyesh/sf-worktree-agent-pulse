@@ -6,15 +6,24 @@ test("@claim:sample-five loads five sample worktrees in one click", async ({ pag
   await expect(page).toHaveURL(/\/demo$/);
   await expect(page.locator(".pulse-board [data-worktree]")).toHaveCount(5);
   await expect(page.getByText("Demo — sample data, nothing is saved")).toBeVisible();
+  await expect(page.getByText("Sample snapshot · no Git scan ran")).toBeVisible();
+  await page.goto("/?demo=1");
+  await expect(page.locator(".pulse-board [data-worktree]")).toHaveCount(5);
+  await expect(page.getByRole("button", { name: "Reset demo" })).toBeVisible();
 });
 
-test("@claim:attention shows blocked and dirty worktrees", async ({ page }) => {
+test("@claim:attention places blocked, remote-behind, and changed worktrees before routine worktrees", async ({ page }) => {
   await page.goto("/demo");
   const blocked = page.locator('[data-worktree="wt-checkout"]');
   await expect(blocked).toContainText("Blocked");
   await expect(blocked).toContainText("3 changed");
+  expect(await page.locator(".pulse-board [data-worktree]").evaluateAll((rows) => rows.map((row) => row.getAttribute("data-worktree")))).toEqual([
+    "wt-checkout", "wt-invoices", "wt-main", "wt-search", "wt-auth",
+  ]);
   await page.getByRole("button", { name: /Needs attention/ }).click();
-  await expect(page.locator(".pulse-board [data-worktree]")).toHaveCount(4);
+  expect(await page.locator(".pulse-board [data-worktree]").evaluateAll((rows) => rows.map((row) => row.getAttribute("data-worktree")))).toEqual([
+    "wt-checkout", "wt-invoices", "wt-main", "wt-search",
+  ]);
 });
 
 test("@claim:first-screen-demo keeps the primary action in the initial viewport", async ({ page }) => {
@@ -91,7 +100,7 @@ test("@claim:site-network waits for a download request before contacting GitHub"
     }),
   }));
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Catch blocked agents before branches drift" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "See blocked agents and worktrees that need attention" })).toBeVisible();
   expect(outsideRequests).toEqual([]);
   await page.getByRole("button", { name: /Check download/ }).click();
   await expect(page.getByRole("link", { name: /Download for/ })).toHaveAttribute("href", /releases\/download\/v0\.1\.4/);
@@ -136,4 +145,9 @@ test("@claim:license-local stores a returned license locally and sends it only t
   expect(await page.evaluate(() => localStorage.getItem("sb_license:worktree-agent-pulse"))).toBe("fixture-token");
   await expect.poll(() => outsideRequests.length).toBe(1);
   expect(outsideRequests).toEqual(["https://api.sociobot.in/api/v1/products/worktree-agent-pulse/verify?license=fixture-token"]);
+});
+
+test("@claim:refund-contact provides a concrete refund contact", async ({ page }) => {
+  await page.goto("/terms");
+  await expect(page.locator('a[href="mailto:hello@sociobot.in?subject=Pulse%20refund%20request"]')).toHaveText("hello@sociobot.in");
 });

@@ -21,6 +21,23 @@ test("keyboard opens and closes worktree details", async ({ page }) => {
   await expect(page.locator(".detail-panel")).toHaveCount(0);
 });
 
+test("demo keeps legal navigation and sample semantics visible", async ({ page }) => {
+  await page.goto("/?demo=1");
+  await expect(page.getByRole("link", { name: "Privacy" }).first()).toBeVisible();
+  await expect(page.getByRole("link", { name: "Terms" }).first()).toBeVisible();
+  await expect(page.getByText("Built by Param Factory · v0.1.5")).toBeVisible();
+  await expect(page.getByText("Sample snapshot · no Git scan ran")).toBeVisible();
+  await expect(page).toHaveTitle("Demo — Worktree Agent Pulse");
+});
+
+test("landing provides three captioned desktop walkthrough frames", async ({ page }) => {
+  await page.goto("/");
+  const walkthrough = page.locator(".walkthrough");
+  await expect(walkthrough.locator("figure")).toHaveCount(3);
+  await expect(walkthrough.locator("img")).toHaveCount(3);
+  for (const image of await walkthrough.locator("img").all()) await expect(image).toHaveAttribute("alt", /.+/);
+});
+
 test("loads without browser console errors", async ({ page }) => {
   const errors: string[] = [];
   page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });

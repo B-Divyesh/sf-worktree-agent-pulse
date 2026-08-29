@@ -61,6 +61,8 @@ Prompt sheet:
 
 Generation: Azure AI Foundry factory image deployment through `/opt/fleet/lib/gen-image.sh`, 2026-08-28. Assets are original for this product and contain no people, brands, or copyrighted characters. Source PNG and prompt sidecar are retained under `assets/src/`.
 
+The three walkthrough images under `public/assets/` are lossless captures of the product UI at 960×600: the native first-run screen, the bundled sample board, and its selected-worktree drawer. They are self-hosted product documentation, not generated imagery.
+
 ## Voice
 
 Short, operational, and concrete. “Blocked” stays “blocked.” “Worktree” stays “worktree.” Buttons name their result. Errors say what failed and what to do next.
