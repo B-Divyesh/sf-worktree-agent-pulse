@@ -84,6 +84,20 @@
     "sandbox": "fake clock and mocked Sociobot response; assert one request initially, none before 24 hours, and one at 24 hours"
   },
   {
+    "id": "license-uncached-network-lock",
+    "claim": "An unverified license stays locked if billing verification cannot reach Sociobot.",
+    "where": "Pulse Pro license restore flow",
+    "test": "npm run test:e2e -- --grep @claim:license-uncached-network-lock",
+    "sandbox": "fresh browser context with an uncached fake return token; abort verification, reload offline, and assert the Buy action remains visible with no verdict"
+  },
+  {
+    "id": "license-uncached-rate-limit-lock",
+    "claim": "An unverified license stays locked when billing rate-limits verification.",
+    "where": "Pulse Pro license restore flow",
+    "test": "npm run test:e2e -- --grep @claim:license-uncached-rate-limit-lock",
+    "sandbox": "fresh browser context with an uncached fake return token; return HTTP 429 and assert the Buy action remains visible with no verdict"
+  },
+  {
     "id": "mac-download-architecture",
     "claim": "The download button selects the matching Intel or Apple silicon macOS build.",
     "where": "desktop download section",
@@ -108,7 +122,7 @@
     "id": "release-source-provenance",
     "claim": "Every advertised desktop download is checksummed and built from the published release source commit.",
     "where": "desktop download section and release metadata",
-    "test": "npm run test:release-provenance -- v0.1.8",
+    "test": "npm run test:release-provenance -- v0.1.9",
     "sandbox": "public GitHub release API; assert the release target and latest.json source_commit match, then download and hash both macOS DMGs, Windows installer, AppImage, and Debian package"
   },
   {

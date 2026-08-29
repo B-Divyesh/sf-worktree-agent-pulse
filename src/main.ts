@@ -69,7 +69,7 @@ function footer(): string {
   return `<footer class="site-footer">
     <p>See blocked agents and worktrees that need attention in one local board.</p>
     <nav aria-label="Footer"><a href="/privacy" data-route>Privacy</a><a href="/terms" data-route>Terms</a><span>Built by Param Factory</span></nav>
-    <p class="build-id">v0.1.8 · Generated artwork disclosed</p>
+    <p class="build-id">v0.1.9 · Generated artwork disclosed</p>
   </footer>`;
 }
 
@@ -171,9 +171,9 @@ function landing(): string {
           <li><span>03</span><div><h3>Open the right terminal</h3><p>Select a row to open that exact worktree.</p></div></li>
         </ol>
         <div class="walkthrough" aria-label="Desktop app walkthrough">
-          <figure><img src="/assets/walkthrough-add-repository.png" width="960" height="600" alt="Worktree Agent Pulse first-run screen with Add a repository and Load sample project actions."><figcaption>1. Add a repository from the first-run screen.</figcaption></figure>
-          <figure><img src="/assets/walkthrough-inspect.png" width="960" height="600" alt="Worktree Agent Pulse board shows a blocked checkout-retry worktree and changed files."><figcaption>2. Inspect a blocked or changed worktree.</figcaption></figure>
-          <figure><img src="/assets/walkthrough-terminal.png" width="960" height="600" alt="Worktree Agent Pulse detail drawer shows the selected worktree and Open this terminal action."><figcaption>3. Open the selected worktree in your terminal.</figcaption></figure>
+          <figure><img src="/assets/walkthrough-add-repository.png" width="960" height="600" alt="Worktree Agent Pulse first-run screen with Add a repository and Load sample project actions." loading="lazy" decoding="async"><figcaption>1. Add a repository from the first-run screen.</figcaption></figure>
+          <figure><img src="/assets/walkthrough-inspect.png" width="960" height="600" alt="Worktree Agent Pulse board shows a blocked checkout-retry worktree and changed files." loading="lazy" decoding="async"><figcaption>2. Inspect a blocked or changed worktree.</figcaption></figure>
+          <figure><img src="/assets/walkthrough-terminal.png" width="960" height="600" alt="Worktree Agent Pulse detail drawer shows the selected worktree and Open this terminal action." loading="lazy" decoding="async"><figcaption>3. Open the selected worktree in your terminal.</figcaption></figure>
         </div>
       </div>
     </section>
@@ -231,7 +231,7 @@ function dashboard(mode: "demo" | "native"): string {
       ${selected ? detailPanel(selected, mode) : ""}
       <p class="scan-time" role="status">${mode === "demo" || isSampleProject ? "Sample snapshot · no Git scan ran" : "Last scan: just now · Git reads only"}</p>
     </main>
-      ${mode === "demo" ? `<footer class="app-footer"><span>Demo sample data stays separate from real data.</span><nav aria-label="Demo footer"><a href="/privacy" data-route>Privacy</a><a href="/terms" data-route>Terms</a><span>Built by Param Factory · v0.1.8</span></nav></footer>` : ""}
+      ${mode === "demo" ? `<footer class="app-footer"><span>Demo sample data stays separate from real data.</span><nav aria-label="Demo footer"><a href="/privacy" data-route>Privacy</a><a href="/terms" data-route>Terms</a><span>Built by Param Factory · v0.1.9</span></nav></footer>` : ""}
   </div><div class="live-region sr-only" aria-live="polite"></div><div id="dialog-root"></div>`;
 }
 

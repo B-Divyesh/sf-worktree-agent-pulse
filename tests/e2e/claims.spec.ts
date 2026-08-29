@@ -147,6 +147,41 @@ test("@claim:license-local stores a returned license locally and sends it only t
   expect(outsideRequests).toEqual(["https://api.sociobot.in/api/v1/products/worktree-agent-pulse/verify?license=fixture-token"]);
 });
 
+test("@claim:license-uncached-network-lock keeps an unverified returned token locked when billing is unavailable", async ({ page, context }) => {
+  let attempts = 0;
+  await page.route("https://api.sociobot.in/api/v1/products/worktree-agent-pulse/verify?license=unverified-network-token", async (route) => {
+    attempts += 1;
+    await route.abort("failed");
+  });
+  await page.goto("/?license=unverified-network-token");
+  await expect.poll(() => attempts).toBe(1);
+  await expect(page.getByRole("link", { name: "Buy Pulse Pro" })).toBeVisible();
+  await expect(page.getByText("Pulse Pro is active", { exact: false })).toHaveCount(0);
+  expect(await page.evaluate(() => localStorage.getItem("sb_license:worktree-agent-pulse:verdict"))).toBeNull();
+
+  await page.evaluate(async () => {
+    await navigator.serviceWorker.ready;
+    if (!navigator.serviceWorker.controller) await new Promise<void>((resolve) => navigator.serviceWorker.addEventListener("controllerchange", () => resolve(), { once: true }));
+  });
+  await context.setOffline(true);
+  await page.reload();
+  await expect(page.getByRole("link", { name: "Buy Pulse Pro" })).toBeVisible();
+  await expect(page.getByText("Pulse Pro is active", { exact: false })).toHaveCount(0);
+});
+
+test("@claim:license-uncached-rate-limit-lock keeps an unverified returned token locked after a billing 429", async ({ page }) => {
+  let attempts = 0;
+  await page.route("https://api.sociobot.in/api/v1/products/worktree-agent-pulse/verify?license=unverified-rate-limit-token", async (route) => {
+    attempts += 1;
+    await route.fulfill({ status: 429, headers: { "Retry-After": "4" }, body: "Slow down" });
+  });
+  await page.goto("/?license=unverified-rate-limit-token");
+  await expect.poll(() => attempts).toBe(1);
+  await expect(page.getByRole("link", { name: "Buy Pulse Pro" })).toBeVisible();
+  await expect(page.getByText("Pulse Pro is active", { exact: false })).toHaveCount(0);
+  expect(await page.evaluate(() => localStorage.getItem("sb_license:worktree-agent-pulse:verdict"))).toBeNull();
+});
+
 test("@claim:refund-contact provides a concrete refund contact", async ({ page }) => {
   await page.goto("/terms");
   await expect(page.locator('a[href="mailto:hello@sociobot.in?subject=Pulse%20refund%20request"]')).toHaveText("hello@sociobot.in");

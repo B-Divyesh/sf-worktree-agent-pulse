@@ -30,7 +30,7 @@ test("demo keeps legal navigation and sample semantics visible", async ({ page }
   await page.goto("/?demo=1");
   await expect(page.getByRole("link", { name: "Privacy" }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: "Terms" }).first()).toBeVisible();
-  await expect(page.getByText("Built by Param Factory · v0.1.8")).toBeVisible();
+  await expect(page.getByText("Built by Param Factory · v0.1.9")).toBeVisible();
   await expect(page.getByText("Sample snapshot · no Git scan ran")).toBeVisible();
   await expect(page).toHaveTitle("Demo — Worktree Agent Pulse");
 });
@@ -93,13 +93,31 @@ test("desktop controls have 44px targets on every public route", async ({ page }
   }
 });
 
-test("privacy reflows at 200 percent text on a 390px viewport", async ({ page }) => {
+test("all public routes reflow at 200 percent text on a 390px viewport", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/privacy");
+  for (const route of ["/", "/demo", "/privacy", "/terms", "/missing"]) {
+    await page.goto(route);
+    await page.addStyleTag({ content: ":root { font-size: 200% !important; }" });
+    expect(await page.evaluate(() => ({ document: document.documentElement.scrollWidth, viewport: innerWidth })), route).toEqual({ document: 390, viewport: 390 });
+    const heading = page.getByRole("heading", { level: 1 });
+    expect(await heading.evaluate((node) => node.scrollWidth <= node.clientWidth), `${route} heading reflows`).toBe(true);
+  }
+});
+
+test("200 percent mobile text preserves worktree identifiers on the board and in the drawer", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/demo");
   await page.addStyleTag({ content: ":root { font-size: 200% !important; }" });
-  expect(await page.evaluate(() => ({ document: document.documentElement.scrollWidth, viewport: innerWidth }))).toEqual({ document: 390, viewport: 390 });
-  const heading = page.getByRole("heading", { level: 1 });
-  expect(await heading.evaluate((node) => node.scrollWidth <= node.clientWidth)).toBe(true);
+  const identifiers = page.locator("[data-worktree] .tree-main strong, [data-worktree] .branch");
+  for (const identifier of await identifiers.all()) {
+    expect(await identifier.evaluate((node) => node.scrollWidth <= node.clientWidth), `${await identifier.textContent()} is not clipped`).toBe(true);
+  }
+  await page.locator('[data-worktree="wt-checkout"]').click();
+  await expect(page.locator(".detail-panel")).toBeVisible();
+  const drawerIdentifiers = page.locator("#detail-title, .detail-panel dd");
+  for (const identifier of await drawerIdentifiers.all()) {
+    expect(await identifier.evaluate((node) => node.scrollWidth <= node.clientWidth), `${await identifier.textContent()} is not clipped in the drawer`).toBe(true);
+  }
 });
 
 test("empty license validation explains the error and focuses the field", async ({ page }) => {
