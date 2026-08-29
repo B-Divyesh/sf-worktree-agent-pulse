@@ -24,7 +24,7 @@ Fresh clone: `/tmp/worktree-agent-pulse-claims.xtjL8Y/repo` at `6b8267bc57b63f05
 - `npm run build`: pass — deployable output at `dist/site`; `npm run test:build-output` measured 39,195 bytes of JavaScript before gzip.
 - `cargo test --manifest-path src-tauri/Cargo.toml`: pass in the fresh clone.
 - Mobile Lighthouse evidence: Performance 99, Accessibility 100, Best Practices 100, SEO 100 in `.factory/polish-2-evidence/lighthouse-mobile.json`.
-- Cold production check: `node scripts/verify-live.mjs` passed on 2026-08-29T18:32:20Z. It checked titles/landmarks/Axe on `/`, `/demo`, `/privacy`, and `/terms`; desktop/mobile first screens; isolated demo/reset/offline behavior; drawer focus and terminal feedback; 200% reflow; license error; 44px targets; HTTP 404; and a clean application console. Evidence: `.factory/polish-2-evidence/live-check.json` and adjacent screenshots.
+- Cold production check: `node scripts/verify-live.mjs` passed on 2026-08-29T18:41:06Z. It checked titles/landmarks/Axe on `/`, `/demo`, `/privacy`, and `/terms`; desktop/mobile first screens; isolated demo/reset/offline behavior; drawer focus and terminal feedback; 200% reflow; license error; 44px targets; HTTP 404; and a clean application console. Evidence: `.factory/polish-2-evidence/live-check.json` and adjacent screenshots.
 - The standard URL-verifier evidence is in `.factory/polish-2-evidence/verify-url/verify.json`.
 
 The Linux native checks use the documented Tauri prerequisites:
