@@ -78,6 +78,28 @@ test("routes set exact metadata and browser history restores route focus", async
   await expect(page.getByRole("heading", { level: 1 })).toBeFocused();
 });
 
+test("mobile Back restores the exact landing scroll position and H1 focus", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "390px mobile history regression");
+  await page.goto("/");
+  await page.evaluate(() => {
+    document.documentElement.style.scrollBehavior = "auto";
+    window.scrollTo(0, 1200);
+  });
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(500);
+  const savedScroll = await page.evaluate(() => scrollY);
+
+  await page.getByRole("link", { name: "Privacy" }).first().click();
+  await expect(page).toHaveURL(/\/privacy$/);
+  await expect(page.getByRole("heading", { level: 1 })).toBeFocused();
+  expect(await page.evaluate(() => scrollY)).toBe(0);
+
+  await page.goBack();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole("heading", { level: 1 })).toBeFocused();
+  await expect.poll(() => page.evaluate(() => scrollY)).toBe(savedScroll);
+  expect(savedScroll).toBeGreaterThan(500);
+});
+
 test("loads without browser console errors", async ({ page }) => {
   const errors: string[] = [];
   page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });

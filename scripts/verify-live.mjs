@@ -3,7 +3,7 @@ import { chromium } from "playwright";
 import { mkdir, writeFile } from "node:fs/promises";
 
 const origin = process.argv[2] ?? "https://worktree-agent-pulse.sociobot.in";
-const evidence = ".factory/polish-3-evidence";
+const evidence = process.argv[3] ?? ".factory/polish-3-evidence";
 const report = { checkedAt: new Date().toISOString(), origin, checks: [], consoleErrors: [] };
 const pass = (name, detail = "pass") => report.checks.push({ name, detail });
 const assert = (value, message) => { if (!value) throw new Error(message); };
@@ -35,18 +35,22 @@ try {
     pass(`${route} metadata, structure, and axe`, await page.title());
   }
 
+  await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(origin + "/", { waitUntil: "domcontentloaded" });
   await page.evaluate(() => { document.documentElement.style.scrollBehavior = "auto"; window.scrollTo(0, 1200); });
   await page.waitForFunction(() => scrollY > 500);
+  const savedScroll = await page.evaluate(() => scrollY);
   await page.getByRole("link", { name: "Privacy" }).first().click();
   await page.waitForFunction(() => document.activeElement === document.querySelector("h1"));
+  assert(await page.evaluate(() => scrollY) === 0, "Privacy route did not start at the top");
   await page.goBack({ waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => document.activeElement === document.querySelector("h1"));
-  assert(await page.evaluate(() => scrollY) > 500, "Back did not restore landing scroll");
+  assert(savedScroll > 500 && await page.evaluate(() => scrollY) === savedScroll, "Back did not restore the exact mobile landing scroll");
   await page.goForward({ waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => document.activeElement === document.querySelector("h1"));
-  pass("history, focus, and scroll", "Privacy navigation and Back/Forward restore the route heading; Back restores landing scroll");
+  pass("mobile history, focus, and scroll", `Privacy navigation started at top; Back restored ${savedScroll}px and landing H1 focus; Forward restored Privacy H1 focus`);
 
+  await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(origin + "/", { waitUntil: "domcontentloaded" });
   for (const selector of ["h1", ".lede", ".hero-actions", ".plain-facts"]) {
     const box = await page.locator(selector).boundingBox();

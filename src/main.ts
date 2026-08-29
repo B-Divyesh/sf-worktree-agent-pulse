@@ -26,6 +26,12 @@ let isPro = false;
 let licenseInitialized = false;
 let isSampleProject = false;
 let terminalPreviewMessage = "";
+let isRestoringHistory = false;
+let scrollStateFrame: number | null = null;
+
+interface RouteHistoryState {
+  pulseScroll?: { x: number; y: number };
+}
 
 const titles: Record<string, string> = {
   "/": "Worktree Agent Pulse — Monitor worktrees",
@@ -70,10 +76,17 @@ function initializeRealLicense(): void {
   });
 }
 
+function saveHistoryScroll(): void {
+  if (isNative || isRestoringHistory) return;
+  const current = history.state && typeof history.state === "object" ? history.state as RouteHistoryState : {};
+  history.replaceState({ ...current, pulseScroll: { x: window.scrollX, y: window.scrollY } }, "", window.location.href);
+}
+
 function navigate(path: string): void {
-  history.pushState({}, "", path);
+  saveHistoryScroll();
+  history.pushState({ pulseScroll: { x: 0, y: 0 } } satisfies RouteHistoryState, "", path);
   render(true);
-  window.scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
+  window.scrollTo({ left: 0, top: 0, behavior: "instant" });
 }
 
 function header(): string {
@@ -493,7 +506,31 @@ async function toggleBlockedAlerts(): Promise<void> {
   announce(granted ? "Blocked alerts enabled." : enabled ? "Blocked alerts disabled." : "Notification permission was not granted.");
 }
 
-window.addEventListener("popstate", () => render(true));
+if (!isNative) {
+  history.scrollRestoration = "manual";
+  saveHistoryScroll();
+  window.addEventListener("scroll", () => {
+    if (isRestoringHistory) return;
+    if (scrollStateFrame !== null) cancelAnimationFrame(scrollStateFrame);
+    scrollStateFrame = requestAnimationFrame(() => {
+      scrollStateFrame = null;
+      saveHistoryScroll();
+    });
+  }, { passive: true });
+}
+
+window.addEventListener("popstate", (event) => {
+  const state = event.state && typeof event.state === "object" ? event.state as RouteHistoryState : {};
+  const position = state.pulseScroll ?? { x: 0, y: 0 };
+  isRestoringHistory = true;
+  render();
+  requestAnimationFrame(() => {
+    window.scrollTo({ left: position.x, top: position.y, behavior: "instant" });
+    document.querySelector<HTMLElement>("h1")?.focus({ preventScroll: true });
+    isRestoringHistory = false;
+    saveHistoryScroll();
+  });
+});
 window.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && selectedId) closeDetail();
   if ((event.key === "ArrowDown" || event.key === "ArrowUp") && document.activeElement?.matches("[data-worktree]")) {
