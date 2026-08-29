@@ -44,11 +44,33 @@ shape and missing-platform rejection.
   package is `Worktree Agent Pulse_0.1.6_amd64.deb`, package version `0.1.6`,
   SHA-256 `0de6a181a2caf4e65b48f1c987bcfa820babea8855e2a678bc317a7e94eef148`.
 
-## Publish and deploy verification
+## Published release and deployment evidence
 
-After pushing the tag, run the exact provenance gate above and verify the
-matching static build is deployed with `VITE_BUILD_SOURCE_COMMIT` set to the
-tag's commit. The release workflow is the cross-platform builder; it produces
-the unsigned macOS DMGs, Windows NSIS installer, Linux AppImage, and DEB. No
-signing credentials are configured. Operator signing secrets, if later needed,
-are `APPLE_CERTIFICATE` and `WINDOWS_CERT_PFX`.
+- GitHub Actions run
+  [33237999937](https://github.com/B-Divyesh/sf-worktree-agent-pulse/actions/runs/33237999937)
+  completed successfully. Its macOS ARM64 and x64, Windows NSIS, and Linux
+  AppImage/DEB matrix jobs all passed, followed by the checksum/manifest job.
+- GitHub Release `v0.1.6` targets
+  `9f2e77fe35b098c3f818169dedb0682af0da2310`, exactly the tagged repair source.
+  Its assets are `Worktree.Agent.Pulse_0.1.6_aarch64.dmg`,
+  `Worktree.Agent.Pulse_0.1.6_x64.dmg`,
+  `Worktree.Agent.Pulse_0.1.6_x64-setup.exe`,
+  `Worktree.Agent.Pulse_0.1.6_amd64.AppImage`,
+  `Worktree.Agent.Pulse_0.1.6_amd64.deb`, `SHA256SUMS`, and `latest.json`.
+- `npm run test:release-provenance -- v0.1.6` passed against that public
+  release. It verified the source commit in both GitHub release metadata and
+  `latest.json`, then downloaded and hashed all five platform assets against
+  `SHA256SUMS`.
+- The matching static build was deployed to Azure Static Web Apps production.
+  Live `main-sLEEYOP0.js` contains the same source commit. `verify-url.sh`
+  passed (HTTP 200, 786ms, title, `lang=en`, one `h1`, `main`, all image alt
+  text, and no errors). `/missing` returns HTTP 404 with CSP, HSTS, nosniff,
+  strict-origin referrer policy, and denied camera/microphone/geolocation.
+- Live Playwright desktop and 390×844 `/demo` smoke checks found five sample
+  rows, one `h1`, one `main`, zero console/page errors, and zero serious or
+  critical Axe findings. This supplements the full local keyboard, offline,
+  privacy, update, and response-policy suite above.
+
+The desktop builds are intentionally unsigned. No signing credentials are
+configured. Operator secrets, if signing is later required, are
+`APPLE_CERTIFICATE` and `WINDOWS_CERT_PFX`.
