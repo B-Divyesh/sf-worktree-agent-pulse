@@ -32,6 +32,8 @@ shape and missing-platform rejection.
 ## Local verification before publish
 
 - `npm ci` completed with 0 audit vulnerabilities.
+- Every one of the 23 exact commands in `.factory/claims.json` passed from that
+  clean install, including the live checkout and new release-provenance gate.
 - `npm test` passed: 14 Vitest tests and 48 Playwright checks across desktop and
   390×844 mobile, including keyboard, route, demo privacy, offline service
   worker, reduced-motion, accessibility, and checkout coverage.
