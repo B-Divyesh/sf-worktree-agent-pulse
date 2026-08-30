@@ -6,6 +6,7 @@ import { chromium } from "playwright";
 const port = 4174;
 const origin = `http://127.0.0.1:${port}`;
 const outputPath = resolve(process.argv[2] ?? "test-results/lighthouse-mobile.json");
+const sampleCount = Number.parseInt(process.env.LIGHTHOUSE_SAMPLES ?? "3", 10);
 const npxCommand = process.platform === "win32" ? "npx.cmd" : "npx";
 const preview = spawn(process.execPath, [
   "node_modules/vite/bin/vite.js",
@@ -44,9 +45,15 @@ function requireFloor(actual, floor, label) {
   if (actual < floor) throw new Error(`${label} was ${Math.round(actual * 100)}; required ${Math.round(floor * 100)} or higher.`);
 }
 
-try {
-  await waitForPreview();
-  await mkdir(dirname(outputPath), { recursive: true });
+function samplePath(sample) {
+  if (sampleCount === 1) return outputPath;
+  const extension = outputPath.endsWith(".json") ? ".json" : "";
+  const base = extension ? outputPath.slice(0, -extension.length) : outputPath;
+  return `${base}.${sample}${extension}`;
+}
+
+async function checkSample(sample) {
+  const path = samplePath(sample);
   await run(npxCommand, [
     "--yes",
     "lighthouse@12.8.2",
@@ -56,29 +63,37 @@ try {
     "--only-categories=performance,accessibility,best-practices,seo",
     "--emulated-form-factor=mobile",
     "--output=json",
-    `--output-path=${outputPath}`,
+    `--output-path=${path}`,
   ], { env: { ...process.env, CHROME_PATH: chromium.executablePath() } });
 
-  const report = JSON.parse(await readFile(outputPath, "utf8"));
-  requireFloor(report.categories.performance.score, 0.9, "Mobile Lighthouse performance");
-  requireFloor(report.categories.accessibility.score, 0.95, "Mobile Lighthouse accessibility");
-  requireFloor(report.categories["best-practices"].score, 0.9, "Mobile Lighthouse best practices");
-  requireFloor(report.categories.seo.score, 0.9, "Mobile Lighthouse SEO");
-
+  const report = JSON.parse(await readFile(path, "utf8"));
+  requireFloor(report.categories.performance.score, 0.9, `Mobile Lighthouse performance (sample ${sample})`);
+  requireFloor(report.categories.accessibility.score, 0.95, `Mobile Lighthouse accessibility (sample ${sample})`);
+  requireFloor(report.categories["best-practices"].score, 0.9, `Mobile Lighthouse best practices (sample ${sample})`);
+  requireFloor(report.categories.seo.score, 0.9, `Mobile Lighthouse SEO (sample ${sample})`);
   const tbt = report.audits["total-blocking-time"].numericValue;
   const lcp = report.audits["largest-contentful-paint"].numericValue;
   const cls = report.audits["cumulative-layout-shift"].numericValue;
-  if (tbt >= 200) throw new Error(`Total blocking time was ${Math.round(tbt)} ms; required under 200 ms.`);
-  if (lcp >= 2500) throw new Error(`Largest Contentful Paint was ${Math.round(lcp)} ms; required under 2500 ms.`);
-  if (cls >= 0.1) throw new Error(`Cumulative Layout Shift was ${cls}; required under 0.1.`);
-
-  console.log(JSON.stringify({
-    lighthouseVersion: report.lighthouseVersion,
-    benchmarkIndex: report.environment.benchmarkIndex,
+  if (tbt >= 200) throw new Error(`Total blocking time was ${Math.round(tbt)} ms in sample ${sample}; required under 200 ms.`);
+  if (lcp >= 2500) throw new Error(`Largest Contentful Paint was ${Math.round(lcp)} ms in sample ${sample}; required under 2500 ms.`);
+  if (cls >= 0.1) throw new Error(`Cumulative Layout Shift was ${cls} in sample ${sample}; required under 0.1.`);
+  return {
+    sample,
+    outputPath: path,
     scores: Object.fromEntries(Object.entries(report.categories).map(([key, value]) => [key, Math.round(value.score * 100)])),
-    metrics: { tbtMs: Math.round(tbt), lcpMs: Math.round(lcp), cls },
-    outputPath,
-  }, null, 2));
+    tbtMs: Math.round(tbt),
+    lcpMs: Math.round(lcp),
+    cls,
+  };
+}
+
+try {
+  if (!Number.isInteger(sampleCount) || sampleCount < 1) throw new Error("LIGHTHOUSE_SAMPLES must be a positive integer.");
+  await waitForPreview();
+  await mkdir(dirname(outputPath), { recursive: true });
+  const samples = [];
+  for (let sample = 1; sample <= sampleCount; sample += 1) samples.push(await checkSample(sample));
+  console.log(JSON.stringify({ samples, gate: "Every cold mobile sample passed the release budgets." }, null, 2));
 } finally {
   preview.kill("SIGTERM");
 }

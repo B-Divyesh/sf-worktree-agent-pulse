@@ -62,11 +62,12 @@ The status file is opt-in. Create `.worktree-agent-pulse/status.json` inside a w
 ```sh
 npm test
 npm run test:lighthouse
+npm run test:build-identity
 npm run build
 cargo test --manifest-path src-tauri/Cargo.toml
 ```
 
-`npm run test:lighthouse` uses the pinned Lighthouse 12.8.2 CLI and the Playwright Chromium install. It enforces the mobile release budgets. `npm run build` writes the deployable site to `dist/site`. GitHub Actions builds desktop bundles when a `v*` tag is pushed.
+`npm run test:lighthouse` uses Lighthouse 12.8.2 and Playwright Chromium. It runs three cold mobile samples. Every sample must meet the release budgets. `npm run test:build-identity` proves the WebView exposes an immutable source commit. `npm run build` writes the site to `dist/site`. GitHub Actions builds desktop bundles when a `v*` tag is pushed.
 
 ## Install
 

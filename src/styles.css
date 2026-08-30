@@ -20,8 +20,7 @@
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; background: var(--ink-0); }
-body { margin: 0; min-width: 320px; min-height: 100vh; background: var(--ink-0); color: var(--paper); font-size: 17px; line-height: 1.55; }
-body::before { content: ""; position: fixed; inset: 0; pointer-events: none; opacity: .15; background-image: linear-gradient(rgba(124,247,196,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(124,247,196,.06) 1px, transparent 1px); background-size: 48px 48px; mask-image: linear-gradient(to bottom, black, transparent 72%); }
+body { margin: 0; min-width: 320px; min-height: 100vh; background-color: var(--ink-0); background-image: linear-gradient(rgba(124,247,196,.012) 1px, transparent 1px), linear-gradient(90deg, rgba(124,247,196,.01) 1px, transparent 1px); background-size: 48px 48px; color: var(--paper); font-size: 17px; line-height: 1.55; }
 button, input { font: inherit; }
 button, a { -webkit-tap-highlight-color: transparent; }
 a { display: inline-flex; min-width: 44px; min-height: 44px; align-items: center; color: var(--blue); text-underline-offset: 4px; }
@@ -38,7 +37,7 @@ h1:focus { outline: none; }
 .skip-link { position: fixed; z-index: 99; left: 16px; top: 12px; padding: 10px 16px; background: var(--pulse); color: var(--ink-0); transform: translateY(-160%); }
 .skip-link:focus { transform: translateY(0); }
 
-.site-header, .app-header { position: relative; z-index: 10; display: flex; align-items: center; justify-content: space-between; min-height: 80px; padding: 16px clamp(20px, 4vw, 64px); border-bottom: 1px solid var(--line); background: rgba(8,13,13,.88); backdrop-filter: blur(18px); }
+.site-header, .app-header { position: relative; z-index: 10; display: flex; align-items: center; justify-content: space-between; min-height: 80px; padding: 16px clamp(20px, 4vw, 64px); border-bottom: 1px solid var(--line); background: var(--ink-0); }
 .site-header { position: sticky; top: 0; }
 .wordmark { display: inline-flex; align-items: center; gap: 12px; color: var(--paper); font: 500 11px/1.15 var(--mono); letter-spacing: .08em; text-decoration: none; }
 .wordmark strong { color: var(--pulse); font-weight: 650; }
@@ -73,6 +72,7 @@ h1:focus { outline: none; }
 
 .product-preview, .how-section, .privacy-section, .price-section, .download-section { display: grid; grid-template-columns: minmax(140px, 18vw) 1fr; border-bottom: 1px solid var(--line); }
 .product-preview, .how-section, .privacy-section, .price-section, .download-section, .site-footer { contain: layout paint style; }
+.product-preview, .how-section, .privacy-section, .price-section, .download-section { content-visibility: auto; contain-intrinsic-size: auto 720px; }
 .section-index { padding: 72px clamp(20px, 3vw, 48px); border-right: 1px solid var(--line); color: var(--mist); font-size: .7rem; letter-spacing: .12em; }
 .section-index span { display: block; margin-bottom: 8px; color: var(--pulse); font-size: 1.4rem; }
 .section-content { min-width: 0; padding: clamp(64px, 9vw, 128px) clamp(24px, 7vw, 112px); }

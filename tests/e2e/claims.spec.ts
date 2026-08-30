@@ -130,7 +130,7 @@ test("@claim:offline-demo reloads the sample while offline", async ({ browser })
   try {
     await page.goto("/demo");
     await waitForServiceWorkerControl(page);
-    const cachedUrls = await page.evaluate(async () => (await (await caches.open("worktree-agent-pulse-v4")).keys()).map((request) => request.url));
+    const cachedUrls = await page.evaluate(async () => (await (await caches.open("worktree-agent-pulse-v5")).keys()).map((request) => request.url));
     expect(cachedUrls.some((url) => url.includes("/assets/main-"))).toBe(true);
     await context.setOffline(true);
     await page.goto("/demo");

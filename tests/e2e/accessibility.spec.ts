@@ -50,7 +50,7 @@ test("demo keeps legal navigation and sample semantics visible", async ({ page }
   await page.goto("/?demo=1");
   await expect(page.getByRole("link", { name: "Privacy" }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: "Terms" }).first()).toBeVisible();
-  await expect(page.getByText("Built by Param Factory · v0.1.11")).toBeVisible();
+  await expect(page.getByText("Built by Param Factory · v0.1.12")).toBeVisible();
   await expect(page.getByText("Sample snapshot · no Git scan ran")).toBeVisible();
   await expect(page).toHaveTitle("Demo — Worktree Agent Pulse");
 });
@@ -127,6 +127,12 @@ test("loads without browser console errors", async ({ page }) => {
   await page.goto("/");
   await page.goto("/demo");
   expect(errors).toEqual([]);
+});
+
+test("the released WebView exposes an immutable build source", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator("#app")).toHaveAttribute("data-build-source", /^[a-f0-9]{40}$/);
+  await expect(page.locator("#app")).not.toHaveAttribute("data-build-source", "local-development");
 });
 
 test("footer attribution is text instead of a dead external link", async ({ page }) => {

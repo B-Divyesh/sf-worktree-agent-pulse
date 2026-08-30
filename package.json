@@ -1,7 +1,7 @@
 {
   "name": "worktree-agent-pulse",
   "private": true,
-  "version": "0.1.11",
+  "version": "0.1.12",
   "engines": {
     "node": ">=22"
   },
@@ -17,6 +17,7 @@
     "test:checkout": "node scripts/verify-checkout.mjs",
     "test:release-provenance": "node scripts/verify-release-provenance.mjs",
     "test:build-output": "node scripts/verify-build-output.mjs",
+    "test:build-identity": "node scripts/verify-build-identity.mjs",
     "test:lighthouse": "npm run build:site && node scripts/verify-lighthouse.mjs",
     "test:signing-status": "node scripts/verify-signing-status.mjs",
     "preview": "vite preview --host 0.0.0.0"
