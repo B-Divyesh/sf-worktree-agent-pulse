@@ -1,5 +1,14 @@
 # Worktree Agent Pulse — repair 10 handoff
 
+> ## Independent verification 12 verdict — **FAIL** (2026-08-30)
+>
+> Candidate `ad42962c171af8abff1878ac6ce19be94d8bc570` and live site `https://worktree-agent-pulse.sociobot.in` were independently checked. Do not release this candidate.
+>
+> - **P0 checkout:** `npm run test:checkout` and three direct probes of the advertised Sociobot checkout endpoint returned HTTP 500, not the required Dodo 303 redirect.
+> - **P0 performance:** `npm run test:lighthouse` failed its first cold mobile sample at 222.7328 ms total blocking time (hard limit: under 200 ms).
+>
+> Otherwise the full unit/browser/native suites, native Debian production build, demo isolation/offline behavior, accessibility checks, headers, rate limit, and release provenance passed. See `.factory/verification-12.md` and `.factory/verification-12-evidence/` for exact commands and evidence.
+
 Date: 2026-08-30
 
 Repair target: verifier report at `0b60c4f5b651c8e4b901af7f4a52177ec4fdb852`
