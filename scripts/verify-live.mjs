@@ -177,8 +177,8 @@ try {
   assert((await releaseResponse).status() === 200, "GitHub latest-release request did not return 200");
   const liveDownload = page.getByRole("link", { name: "Download for Linux" });
   await liveDownload.waitFor();
-  assert((await liveDownload.getAttribute("href"))?.includes("/releases/download/v0.1.12/Worktree.Agent.Pulse_0.1.12_amd64.AppImage"), "live Linux download does not target v0.1.12");
-  pass("live release download", "Linux button resolves through the GitHub API to the v0.1.12 AppImage");
+  assert((await liveDownload.getAttribute("href"))?.includes("/releases/download/v0.1.13/Worktree.Agent.Pulse_0.1.13_amd64.AppImage"), "live Linux download does not target v0.1.13");
+  pass("live release download", "Linux button resolves through the GitHub API to the v0.1.13 AppImage");
   let verificationRequests = 0;
   page.on("request", (request) => { if (request.url().includes("/verify?license=")) verificationRequests += 1; });
   await page.locator("#restore-license").click();
