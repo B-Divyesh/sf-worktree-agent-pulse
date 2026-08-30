@@ -549,7 +549,7 @@ if (isNative) void listenForBlockedAlertActions((worktreeId) => {
 
 if (isNative && loadRepositoryPaths()[0]) {
   import("@tauri-apps/api/core").then(({ invoke }) => invoke<RepositoryPulse>("scan_repository", { path: loadRepositoryPaths()[0] })).then((result) => { repository = result; render(); }).catch(() => render());
-} else render(true);
+} else render(isNative);
 
 scheduleProRefresh(
   () => void refresh(),

@@ -26,6 +26,26 @@ test("keyboard opens and closes worktree details", async ({ page }) => {
   await expect(first).toBeFocused();
 });
 
+test("cold-load keyboard order starts with the skip link and header", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator("body")).toBeFocused();
+
+  await page.keyboard.press("Tab");
+  const skipLink = page.getByRole("link", { name: "Skip to content" });
+  await expect(skipLink).toBeFocused();
+  await expect(skipLink).toBeVisible();
+
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("link", { name: "Worktree Agent Pulse home" })).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "Demo" })).toBeFocused();
+
+  await page.goto("/privacy");
+  await expect(page.locator("body")).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("link", { name: "Skip to content" })).toBeFocused();
+});
+
 test("demo keeps legal navigation and sample semantics visible", async ({ page }) => {
   await page.goto("/?demo=1");
   await expect(page.getByRole("link", { name: "Privacy" }).first()).toBeVisible();
