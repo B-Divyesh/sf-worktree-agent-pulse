@@ -1,0 +1,35 @@
+{
+  "checkedAt": "2026-08-30T01:03:00Z",
+  "origin": "https://worktree-agent-pulse.sociobot.in",
+  "implementationCommit": "c1bccd0b0cf27658dbebfef04f9c794f22cf53a8",
+  "azureDeploymentId": "e6a4da33-b688-4ec9-9e97-79e91f5c6189",
+  "routes": {
+    "/": 200,
+    "/demo": 200,
+    "/privacy": 200,
+    "/terms": 200,
+    "/robots.txt": 200,
+    "/sitemap.xml": 200,
+    "/missing": 404
+  },
+  "assets": {
+    "/assets/main-CnOIOJjo.js": "de67b25794ae910c5ddfd1dce8aec64e6a1849f07dd3c5c4ecfc826773bf1e61",
+    "/assets/main-BUTBQLYc.css": "53da52092c3e4017e53155592af8f503e22b02225ac815eb26d64cf82a2afffc",
+    "/assets/hero-lattice.webp": "6b734e3f89a80550b2df0ba1c41614624b831ac9ea0c54bccc8d03ae5d566efa",
+    "/assets/social-card.webp": "82efa7bd638795c48f1d1d9164cc5c37b41fc6fb6a224a3b535e919ff97042ce"
+  },
+  "assetIdentity": "Each live SHA-256 matched the corresponding dist/site file.",
+  "coldKeyboardOrder": {
+    "1440x900": ["BODY", "Skip to content", "Worktree Agent Pulse home"],
+    "390x844": ["BODY", "Skip to content", "Worktree Agent Pulse home"]
+  },
+  "responsePolicy": {
+    "htmlCacheControl": "public, must-revalidate, max-age=30",
+    "hashedAssetCacheControl": "public, max-age=31536000, immutable",
+    "strictTransportSecurity": "max-age=10886400; includeSubDomains; preload",
+    "referrerPolicy": "strict-origin-when-cross-origin",
+    "xContentTypeOptions": "nosniff",
+    "permissionsPolicy": "camera=(), microphone=(), geolocation=()",
+    "cspFrameAncestors": "'none'"
+  }
+}
