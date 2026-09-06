@@ -50,7 +50,7 @@ test("demo keeps legal navigation and sample semantics visible", async ({ page }
   await page.goto("/?demo=1");
   await expect(page.getByRole("link", { name: "Privacy" }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: "Terms" }).first()).toBeVisible();
-  await expect(page.getByText("Built by Param Factory · v0.1.13")).toBeVisible();
+  await expect(page.getByText("Built by Param Factory · v0.1.14")).toBeVisible();
   await expect(page.getByText("Sample snapshot · no Git scan ran")).toBeVisible();
   await expect(page).toHaveTitle("Demo — Worktree Agent Pulse");
 });
@@ -61,6 +61,26 @@ test("landing provides three captioned desktop walkthrough frames", async ({ pag
   await expect(walkthrough.locator("figure")).toHaveCount(3);
   await expect(walkthrough.locator("img")).toHaveCount(3);
   for (const image of await walkthrough.locator("img").all()) await expect(image).toHaveAttribute("alt", /.+/);
+});
+
+test("cold landing defers walkthrough media until it nears the viewport", async ({ page }) => {
+  const walkthroughRequests: string[] = [];
+  page.on("request", (request) => {
+    if (request.url().includes("/assets/walkthrough-")) walkthroughRequests.push(request.url());
+  });
+  await page.goto("/");
+  await expect(page.getByRole("link", { name: "Try it with sample data" })).toBeVisible();
+  await expect(page.locator("#landing-sections")).toHaveAttribute("data-ready", "true");
+  expect(walkthroughRequests).toEqual([]);
+
+  await page.locator(".walkthrough").scrollIntoViewIfNeeded();
+  await expect.poll(() => walkthroughRequests.length).toBe(3);
+  for (const image of await page.locator(".walkthrough img").all()) {
+    await expect.poll(() => image.evaluate((node) => {
+      const element = node as HTMLImageElement;
+      return element.complete && element.naturalWidth > 0;
+    })).toBe(true);
+  }
 });
 
 test("routes set exact metadata and browser history restores route focus", async ({ page }) => {

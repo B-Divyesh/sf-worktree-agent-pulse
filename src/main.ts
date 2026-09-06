@@ -1,6 +1,6 @@
 import "@fontsource-variable/space-grotesk";
-import "@fontsource/ibm-plex-mono/400.css";
-import "@fontsource/ibm-plex-mono/600.css";
+import "@fontsource/ibm-plex-mono/latin-400.css";
+import "@fontsource/ibm-plex-mono/latin-600.css";
 import "./styles.css";
 import { BUILD_SOURCE_COMMIT } from "./build-info";
 import { SAMPLE_REPOSITORY } from "./sample";
@@ -28,6 +28,8 @@ let isSampleProject = false;
 let terminalPreviewMessage = "";
 let isRestoringHistory = false;
 let scrollStateFrame: number | null = null;
+let renderGeneration = 0;
+let serviceWorkerRequested = false;
 
 interface RouteHistoryState {
   pulseScroll?: { x: number; y: number };
@@ -108,7 +110,7 @@ function footer(): string {
   return `<footer class="site-footer">
     <p>See blocked agents and worktrees that need attention in one local board.</p>
     <nav aria-label="Footer"><a href="/privacy" data-route>Privacy</a><a href="/terms" data-route>Terms</a><span>Built by Param Factory</span></nav>
-    <p class="build-id">v0.1.13 · Generated artwork disclosed</p>
+    <p class="build-id">v0.1.14 · Generated artwork disclosed</p>
   </footer>`;
 }
 
@@ -158,12 +160,12 @@ function row(item: WorktreePulse, preview = false): string {
     : `<button class="worktree-row status-${item.agentState}${selectedId === item.id ? " selected" : ""}" data-worktree="${e(item.id)}" aria-label="Open details for ${e(item.name)}">${content}</button>`;
 }
 
-function miniDashboard(): string {
+function miniDashboard(items: WorktreePulse[] = orderWorktrees(SAMPLE_REPOSITORY.worktrees)): string {
   return `<div class="mini-window" role="region" aria-label="Example pulse board with five worktrees" tabindex="0">
     <div class="window-bar"><span></span><span></span><span></span><strong>NORTHSTAR / 5 WORKTREES</strong><em>SAMPLE SNAPSHOT</em></div>
     <div class="mini-body">
       <div class="board-head"><span>WORKTREE</span><span>AGENT</span><span>GIT STATE</span></div>
-      ${orderWorktrees(SAMPLE_REPOSITORY.worktrees).map((item) => row(item, true)).join("")}
+      <div class="mini-rows">${items.map((item) => row(item, true)).join("")}</div>
     </div>
   </div>`;
 }
@@ -173,7 +175,6 @@ function platformName(platform: Platform): string {
 }
 
 function landing(): string {
-  const platform = platformFromUserAgent(`${navigator.userAgent} ${navigator.platform}`);
   return `${header()}<main id="main">
     <section class="hero">
       <div class="hero-copy">
@@ -191,17 +192,20 @@ function landing(): string {
         </ul>
       </div>
       <figure class="hero-art">
-        <picture><img src="/assets/hero-lattice.webp" width="1536" height="1024" alt="Five geometric branch rails show active, warning, and blocked worktrees." fetchpriority="high" decoding="async"></picture>
+        <picture><source media="(max-width: 620px)" srcset="/assets/hero-lattice-768.webp"><img src="/assets/hero-lattice.webp" width="1536" height="1024" alt="Five geometric branch rails show active, warning, and blocked worktrees." fetchpriority="high" decoding="async"></picture>
         <figcaption>Preview: five worktrees, including one blocked agent.</figcaption>
       </figure>
-    </section>
+    </section><div id="landing-sections" class="landing-sections"></div>
+  </main>${footer()}<div id="dialog-root"></div>`;
+}
 
-    <section class="product-preview" aria-labelledby="preview-title">
+function landingSectionRenderers(platform: Platform): Array<() => string> {
+  return [
+    () => `<section class="product-preview" aria-labelledby="preview-title">
       <div class="section-index"><span>02</span><p>THE BOARD</p></div>
-      <div class="section-content"><h2 id="preview-title">See worktrees in attention order</h2><p>Worktrees with blocked agents, remote changes to pull, or local file changes appear before routine worktrees.</p>${miniDashboard()}</div>
-    </section>
-
-    <section id="how" class="how-section" aria-labelledby="how-title">
+      <div class="section-content"><h2 id="preview-title">See worktrees in attention order</h2><p>Worktrees with blocked agents, remote changes to pull, or local file changes appear before routine worktrees.</p>${miniDashboard([])}</div>
+    </section>`,
+    () => `<section id="how" class="how-section" aria-labelledby="how-title">
       <div class="section-index"><span>03</span><p>HOW IT WORKS</p></div>
       <div class="section-content"><h2 id="how-title">Monitor and open worktrees in three steps</h2>
         <ol class="steps">
@@ -210,31 +214,77 @@ function landing(): string {
           <li><span>03</span><div><h3>Open the right terminal</h3><p>Select a row to open that exact worktree.</p></div></li>
         </ol>
         <div class="walkthrough" aria-label="Desktop app walkthrough">
-          <figure><img src="/assets/walkthrough-add-repository.png" width="960" height="600" alt="Worktree Agent Pulse first-run screen with Add a repository and Load sample project actions." loading="lazy" decoding="async"><figcaption>1. Add a repository from the first-run screen.</figcaption></figure>
-          <figure><img src="/assets/walkthrough-inspect.png" width="960" height="600" alt="Worktree Agent Pulse board shows a blocked checkout-retry worktree and changed files." loading="lazy" decoding="async"><figcaption>2. Inspect a blocked or changed worktree.</figcaption></figure>
-          <figure><img src="/assets/walkthrough-terminal.png" width="960" height="600" alt="Worktree Agent Pulse detail drawer shows the selected worktree and Open this terminal action." loading="lazy" decoding="async"><figcaption>3. Open the selected worktree in your terminal.</figcaption></figure>
+          <figure><img data-deferred-src="/assets/walkthrough-add-repository.png" width="960" height="600" alt="Worktree Agent Pulse first-run screen with Add a repository and Load sample project actions." loading="lazy" decoding="async"><figcaption>1. Add a repository from the first-run screen.</figcaption></figure>
+          <figure><img data-deferred-src="/assets/walkthrough-inspect.png" width="960" height="600" alt="Worktree Agent Pulse board shows a blocked checkout-retry worktree and changed files." loading="lazy" decoding="async"><figcaption>2. Inspect a blocked or changed worktree.</figcaption></figure>
+          <figure><img data-deferred-src="/assets/walkthrough-terminal.png" width="960" height="600" alt="Worktree Agent Pulse detail drawer shows the selected worktree and Open this terminal action." loading="lazy" decoding="async"><figcaption>3. Open the selected worktree in your terminal.</figcaption></figure>
         </div>
       </div>
-    </section>
-
-    <section class="privacy-section" aria-labelledby="private-title">
+    </section>`,
+    () => `<section class="privacy-section" aria-labelledby="private-title">
       <div class="section-index"><span>04</span><p>DATA ACCESS</p></div>
       <div class="section-content"><h2 id="private-title">What Pulse reads and ignores</h2><p>Pulse reads Git metadata and three status-file fields. It ignores source, prompt, output, and terminal content. Scans do not change Git state.</p><a href="/privacy" data-route>Read the privacy details →</a></div>
-    </section>
-
-    <section class="price-section" aria-labelledby="price-title">
+    </section>`,
+    () => `<section class="price-section" aria-labelledby="price-title">
       <div class="section-index"><span>05</span><p>ONE-TIME LICENSE</p></div>
       <div class="section-content price-grid">
         <div><h2 id="price-title">Use five worktrees free</h2><p>Pay once to show every worktree and refresh every 10 seconds.</p></div>
         <div class="price"><strong>$19</strong><span>one-time purchase</span>${isPro ? `<span class="license-active">Pulse Pro is active</span>` : `<a class="button primary" href="${checkoutUrl()}">Buy Pulse Pro</a>`}<button class="text-button" id="restore-license" type="button">Restore a license</button></div>
       </div>
-    </section>
-
-    <section class="download-section" aria-labelledby="download-title">
+    </section>`,
+    () => `<section class="download-section" aria-labelledby="download-title">
       <div class="section-index"><span>06</span><p>DESKTOP APP</p></div>
       <div class="section-content"><h2 id="download-title">Install for ${platformName(platform)}</h2><p class="signing-note"><strong>Current macOS and Windows builds are unsigned.</strong> <a href="https://github.com/B-Divyesh/sf-worktree-agent-pulse#install-an-unsigned-build" target="_blank" rel="noreferrer">Read the install steps <span class="sr-only">(opens in a new tab)</span></a> before downloading.</p><p class="download-status" id="download-status">Check GitHub Releases for available downloads.</p><div class="download-actions"><button class="button secondary" id="download-button" type="button">Check download for ${platformName(platform)}</button><a href="${releasesUrl}" target="_blank" rel="noreferrer">View all releases <span class="sr-only">(opens in a new tab)</span></a></div></div>
-    </section>
-  </main>${footer()}<div id="dialog-root"></div>`;
+    </section>`,
+  ];
+}
+
+function hydrateLandingSections(generation: number): void {
+  const target = document.querySelector<HTMLElement>("#landing-sections");
+  if (!target) return;
+  const sections = landingSectionRenderers(platformFromUserAgent(`${navigator.userAgent} ${navigator.platform}`));
+  const previewRows = orderWorktrees(SAMPLE_REPOSITORY.worktrees);
+  const tasks: Array<() => void> = [
+    () => target.insertAdjacentHTML("beforeend", sections[0]()),
+    ...previewRows.map((item) => () => target.querySelector(".mini-rows")?.insertAdjacentHTML("beforeend", row(item, true))),
+    ...sections.slice(1).map((section) => () => target.insertAdjacentHTML("beforeend", section())),
+  ];
+  let index = 0;
+  const appendNext = () => {
+    if (generation !== renderGeneration || !target.isConnected) return;
+    tasks[index]();
+    index += 1;
+    if (index < tasks.length) {
+      requestAnimationFrame(appendNext);
+      return;
+    }
+    bindRouteLinks(target);
+    target.querySelector("#restore-license")?.addEventListener("click", showLicenseDialog);
+    target.querySelector("#download-button")?.addEventListener("click", () => void bindDownload());
+    hydrateWalkthroughImages(target);
+    target.dataset.ready = "true";
+  };
+  requestAnimationFrame(appendNext);
+}
+
+function hydrateWalkthroughImages(scope: ParentNode): void {
+  const images = [...scope.querySelectorAll<HTMLImageElement>("img[data-deferred-src]")];
+  const load = (image: HTMLImageElement) => {
+    const source = image.dataset.deferredSrc;
+    if (source) image.src = source;
+    delete image.dataset.deferredSrc;
+  };
+  if (!("IntersectionObserver" in window)) {
+    images.forEach(load);
+    return;
+  }
+  const observer = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      load(entry.target as HTMLImageElement);
+      observer.unobserve(entry.target);
+    }
+  }, { rootMargin: "400px 0px" });
+  images.forEach((image) => observer.observe(image));
 }
 
 function dashboard(mode: "demo" | "native"): string {
@@ -270,7 +320,7 @@ function dashboard(mode: "demo" | "native"): string {
       ${selected ? detailPanel(selected, mode) : ""}
       <p class="scan-time" role="status">${mode === "demo" || isSampleProject ? "Sample snapshot · no Git scan ran" : "Last scan: just now · Git reads only"}</p>
     </main>
-      ${mode === "demo" ? `<footer class="app-footer"><span>Demo sample data stays separate from real data.</span><nav aria-label="Demo footer"><a href="/privacy" data-route>Privacy</a><a href="/terms" data-route>Terms</a><span>Built by Param Factory · v0.1.13</span></nav></footer>` : ""}
+      ${mode === "demo" ? `<footer class="app-footer"><span>Demo sample data stays separate from real data.</span><nav aria-label="Demo footer"><a href="/privacy" data-route>Privacy</a><a href="/terms" data-route>Terms</a><span>Built by Param Factory · v0.1.14</span></nav></footer>` : ""}
   </div><div class="live-region sr-only" aria-live="polite"></div><div id="dialog-root"></div>`;
 }
 
@@ -311,6 +361,7 @@ function headerWordmark(): string {
 }
 
 function render(focusHeading = false): void {
+  const generation = ++renderGeneration;
   const { path, demoMode } = locationState();
   if (demoMode) discardReturnedDemoLicense();
   else initializeRealLicense();
@@ -336,14 +387,20 @@ function render(focusHeading = false): void {
   const announcer = document.querySelector<HTMLElement>("#route-announcer, .live-region");
   if (announcer) announcer.textContent = title;
   bindEvents();
+  if (!isNative && !demoMode && path === "/") hydrateLandingSections(generation);
+  if (!isNative && demoMode) registerServiceWorker();
   if (focusHeading) requestAnimationFrame(() => document.querySelector<HTMLElement>("h1")?.focus({ preventScroll: true }));
 }
 
-function bindEvents(): void {
-  document.querySelectorAll<HTMLAnchorElement>("[data-route]").forEach((link) => link.addEventListener("click", (event) => {
+function bindRouteLinks(scope: ParentNode = document): void {
+  scope.querySelectorAll<HTMLAnchorElement>("[data-route]").forEach((link) => link.addEventListener("click", (event) => {
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     event.preventDefault(); navigate(new URL(link.href).pathname);
   }));
+}
+
+function bindEvents(): void {
+  bindRouteLinks();
   document.querySelectorAll<HTMLButtonElement>("[data-filter]").forEach((button) => button.addEventListener("click", () => {
     activeFilter = button.dataset.filter as Filter; selectedId = null; render();
   }));
@@ -365,6 +422,12 @@ function bindEvents(): void {
   document.querySelector("#restore-license")?.addEventListener("click", showLicenseDialog);
   document.querySelectorAll(".app-license").forEach((button) => button.addEventListener("click", showLicenseDialog));
   document.querySelector("#download-button")?.addEventListener("click", () => void bindDownload());
+}
+
+function registerServiceWorker(): void {
+  if (serviceWorkerRequested || isNative || !("serviceWorker" in navigator)) return;
+  serviceWorkerRequested = true;
+  void navigator.serviceWorker.register("/sw.js");
 }
 
 function announce(message: string): void {
@@ -524,12 +587,18 @@ window.addEventListener("popstate", (event) => {
   const position = state.pulseScroll ?? { x: 0, y: 0 };
   isRestoringHistory = true;
   render();
-  requestAnimationFrame(() => {
+  const restore = () => {
+    const deferredLanding = document.querySelector<HTMLElement>("#landing-sections");
+    if (deferredLanding && deferredLanding.dataset.ready !== "true") {
+      requestAnimationFrame(restore);
+      return;
+    }
     window.scrollTo({ left: position.x, top: position.y, behavior: "instant" });
     document.querySelector<HTMLElement>("h1")?.focus({ preventScroll: true });
     isRestoringHistory = false;
     saveHistoryScroll();
-  });
+  };
+  requestAnimationFrame(restore);
 });
 window.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && selectedId) closeDetail();
@@ -537,8 +606,6 @@ window.addEventListener("keydown", (event) => {
     event.preventDefault(); const rows = [...document.querySelectorAll<HTMLButtonElement>("[data-worktree]")]; const index = rows.indexOf(document.activeElement as HTMLButtonElement); const offset = event.key === "ArrowDown" ? 1 : -1; rows[(index + offset + rows.length) % rows.length]?.focus();
   }
 });
-
-if ("serviceWorker" in navigator && !isNative) window.addEventListener("load", () => void navigator.serviceWorker.register("/sw.js"));
 
 if (isNative) void listenForBlockedAlertActions((worktreeId) => {
   if (!repository?.worktrees.some((item) => item.id === worktreeId)) return;
@@ -550,6 +617,8 @@ if (isNative) void listenForBlockedAlertActions((worktreeId) => {
 if (isNative && loadRepositoryPaths()[0]) {
   import("@tauri-apps/api/core").then(({ invoke }) => invoke<RepositoryPulse>("scan_repository", { path: loadRepositoryPaths()[0] })).then((result) => { repository = result; render(); }).catch(() => render());
 } else render(isNative);
+
+if (!isNative && !locationState().demoMode) window.setTimeout(registerServiceWorker, 5_000);
 
 scheduleProRefresh(
   () => void refresh(),
