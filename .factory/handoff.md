@@ -16,6 +16,7 @@ The checkout recovery happened in the external Sociobot billing service. No mock
 
 - Verification-12 documentation commit: `8a3e15c48f76032a6e3d3c661afc67d32db2eb19`.
 - Repair implementation commit: `48fdcb7aba7fd3b35f445c935c6d1d7ba8e12942`.
+- Repair documentation and evidence snapshot: `21f37855a5e8efb1a75cc8ef78e29d91dd56d9cc`.
 - Desktop release: [`v0.1.14`](https://github.com/B-Divyesh/sf-worktree-agent-pulse/releases/tag/v0.1.14), built from the implementation commit.
 - Release workflow: <https://github.com/B-Divyesh/sf-worktree-agent-pulse/actions/runs/34014313342> — successful.
 - The deployed bundle contains the full implementation SHA. Later evidence and handoff commits do not change the deployed product image.
