@@ -98,3 +98,14 @@ All earlier review, polish, and verification records were read before this chang
 - Sociobot/Dodo checkout and license verification remain external dependencies. The current checkout is healthy, but this repository cannot prevent a future provider-side outage. `/work/.evidence/billing-offer.json` records the public one-time offer without credentials.
 - macOS and Windows builds remain intentionally unsigned and say so before download. Signing later requires owner-managed Apple notarization credentials and `WINDOWS_CERT_PFX`; none are stored here.
 - This product has no server tenant, shared database, analytics, tracking, or runtime model call. Backend restart/SQLite checks and AI gateway checks do not apply to this local desktop product and static site.
+
+## Verification 13
+
+Independent verification on 2026-09-06: **PASS** — zero findings and zero untested claims.
+
+- Candidate implementation: `48fdcb7aba7fd3b35f445c935c6d1d7ba8e12942`; documentation HEAD: `71d661fb6ac425da3b0ef678b0c05f0702835a1b`. The later diff is documentation/evidence only, and live JavaScript contains the implementation SHA.
+- Fresh desktop and phone browsers identified the job, audience, and **Try it with sample data** action before scrolling. The sample loaded five worktrees, retained its persistent sample label, reset correctly, preserved real-data sentinels, and reloaded offline.
+- All 31 exact claim commands passed after installing the documented Linux Tauri host prerequisites; the complete suite passed 21 Vitest tests, 74 Playwright tests, and 7 Rust tests. Build, output, identity, format, Clippy, audit, and consumer Debian-artifact checks passed.
+- Exact local Lighthouse passed three cold mobile samples: performance 98/100/100 and total blocking time 172.18/37/83 ms.
+- Live checks passed headers, legal/routing, designed HTTP 404, keyboard/reduced motion, accessibility, privacy, release identity, four checkout HTTP 303 redirects, and invalid-license rate limiting at request 31 with `Retry-After: 2`.
+- Full evidence and claim-by-claim disposition: `.factory/verification-13.md`.
