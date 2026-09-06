@@ -1,0 +1,6 @@
+libEGL warning: DRI3 error: Could not get DRI3 device
+libEGL warning: Ensure your X server supports DRI3 to get accelerated rendering
+
+(worktree-agent-pulse:28498): libappindicator-WARNING **: 05:40:09.802: Unable to get the session bus: Failed to execute child process “dbus-launch” (No such file or directory)
+
+(worktree-agent-pulse:28498): LIBDBUSMENU-GLIB-WARNING **: 05:40:09.802: Unable to get session bus: Failed to execute child process “dbus-launch” (No such file or directory)
